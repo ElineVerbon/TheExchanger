@@ -57,14 +57,15 @@ task status {
 
 task executeClient(type:JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.nedap.university.eline.exchanger.client.QuoteClient"
+	standardInput = System.in
+	main = "com.nedap.university.eline.exchanger.client.Client"
 }
 
 task deploy {
     doLast {
         ssh.run {
             session(remotes.pi) {
-            	put from: "${project.rootDir}/Quotes.txt", into: "/home/pi/Quotes.txt"
+            	put from: "${project.rootDir}/src/main/resources/com/nedap/university/eline/exchanger/client/Quotes.txt", into: "/home/pi/Quotes.txt"
                 put from: "${project.rootDir}/build/libs/NUM2-${version}.jar", into: "/home/pi/NUM2.jar"
                 execute 'sudo systemctl restart num2.service'
             }
