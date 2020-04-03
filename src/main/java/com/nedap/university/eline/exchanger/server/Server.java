@@ -12,60 +12,33 @@ import java.util.*;
  */
 public class Server {
     private DatagramSocket socket;
-    private List<String> listQuotes = new ArrayList<String>();
-    private Random random;
+    private InetAddress clientAddress;
+    private int clientPort;
  
     public Server(int port) throws SocketException {
         socket = new DatagramSocket(port);
-        random = new Random();
     }
  
     public static void main(String[] args) {
-        String quoteFile = "/home/pi/Quotes.txt";
         int port = 8080;
  
         try {
             Server server = new Server(port);
-            server.loadQuotesFromFile(quoteFile);
-            server.service();
+            server.setUpUDPConnection();
         } catch (SocketException ex) {
             System.out.println("Socket error: " + ex.getMessage());
-        } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
-        }
+        } catch (IOException e) {
+        	System.out.println("IOexception: " + e.getMessage());
+		}
     }
+    
+    private void setUpUDPConnection() throws IOException {
+    	//TODO actually don't think I need this, I can get this info each time a packet is sent
+	    DatagramPacket request = new DatagramPacket(new byte[1], 1);
+	    socket.receive(request);
  
-    private void service() throws IOException {
-        while (true) {
-            DatagramPacket request = new DatagramPacket(new byte[1], 1);
-            socket.receive(request);
- 
-            String quote = getRandomQuote();
-            byte[] buffer = quote.getBytes();
- 
-            InetAddress clientAddress = request.getAddress();
-            int clientPort = request.getPort();
- 
-            DatagramPacket response = new DatagramPacket(buffer, buffer.length, clientAddress, clientPort);
-            socket.send(response);
-        }
-    }
- 
-    private void loadQuotesFromFile(String quoteFile) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(quoteFile));
-        String aQuote;
- 
-        while ((aQuote = reader.readLine()) != null) {
-            listQuotes.add(aQuote);
-        }
- 
-        reader.close();
-    }
- 
-    private String getRandomQuote() {
-        int randomIndex = random.nextInt(listQuotes.size());
-        String randomQuote = listQuotes.get(randomIndex);
-        return randomQuote;
+        clientAddress = request.getAddress();
+        clientPort = request.getPort();
     }
 }
 
