@@ -2,5 +2,8 @@
 bin/
 build/
 .gradle/
+<<<<<<< HEAD
 .classpath
 .project
+=======
+>>>>>>> 7867ca96f29857dee94b14ff935650f892f89247
