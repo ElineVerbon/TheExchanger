@@ -2,7 +2,8 @@ package com.nedap.university.eline.exchanger.server;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
+
+import com.nedap.university.eline.exchanger.shared.SlidingWindowReceiver;
 
 /**
  * This program demonstrates how to implement a UDP server program.
@@ -12,8 +13,6 @@ import java.util.*;
  */
 public class Server {
     private DatagramSocket socket;
-    private InetAddress clientAddress;
-    private int clientPort;
  
     public Server(int port) throws SocketException {
         socket = new DatagramSocket(port);
@@ -24,21 +23,39 @@ public class Server {
  
         try {
             Server server = new Server(port);
-            server.setUpUDPConnection();
+            server.receiveAndSaveFile();
         } catch (SocketException ex) {
             System.out.println("Socket error: " + ex.getMessage());
-        } catch (IOException e) {
-        	System.out.println("IOexception: " + e.getMessage());
-		}
+        } 
     }
     
-    private void setUpUDPConnection() throws IOException {
-    	//TODO actually don't think I need this, I can get this info each time a packet is sent
-	    DatagramPacket request = new DatagramPacket(new byte[1], 1);
-	    socket.receive(request);
- 
-        clientAddress = request.getAddress();
-        clientPort = request.getPort();
+    public void receiveAndSaveFile() {
+    	String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/fileLocalTestUpload.pdf";
+    	File file;
+    	
+        try {
+        	file = new File(absoluteFilePath);
+			if(file.createNewFile()){
+			    System.out.println(absoluteFilePath+" File Created in " + file.getAbsolutePath());
+			    byte[] bytes = new SlidingWindowReceiver(socket).receiveFile();
+			    System.out.println("Number of bytes is " + bytes.length);
+		    	try {
+		    		OutputStream os = new FileOutputStream(file);
+					os.write(bytes);
+		    		os.close();
+		    		System.out.println("File was saved to " + file.getAbsolutePath());
+		    	} catch (IOException e) {
+					System.out.println("Saving file to pi failed. Error message: " + e.getMessage());
+				}
+			    
+			    
+			} else System.out.println("File "+absoluteFilePath+" already exists");
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    	
+    	
     }
 }
 
