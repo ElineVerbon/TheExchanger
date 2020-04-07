@@ -3,7 +3,7 @@ package com.nedap.university.eline.exchanger.server;
 import java.io.*;
 import java.net.*;
 
-import com.nedap.university.eline.exchanger.shared.SlidingWindowReceiver;
+import com.nedap.university.eline.exchanger.shared.ReceivingWindowReceiver;
 
 /**
  * This program demonstrates how to implement a UDP server program.
@@ -37,25 +37,22 @@ public class Server {
         	file = new File(absoluteFilePath);
 			if(file.createNewFile()){
 			    System.out.println(absoluteFilePath+" File Created in " + file.getAbsolutePath());
-			    byte[] bytes = new SlidingWindowReceiver(socket).receiveFile();
-			    System.out.println("Number of bytes is " + bytes.length);
-		    	try {
-		    		OutputStream os = new FileOutputStream(file);
-					os.write(bytes);
-		    		os.close();
-		    		System.out.println("File was saved to " + file.getAbsolutePath());
-		    	} catch (IOException e) {
-					System.out.println("Saving file to pi failed. Error message: " + e.getMessage());
-				}
-			    
-			    
-			} else System.out.println("File "+absoluteFilePath+" already exists");
+			} else {
+				System.out.println("File already exists, overwriting it!");
+			}
+		    byte[] bytes = new ReceivingWindowReceiver(socket).receiveFile();
+	    	try {
+	    		OutputStream os = new FileOutputStream(file);
+				os.write(bytes);
+	    		os.close();
+	    		System.out.println("File was saved to " + file.getAbsolutePath());
+	    	} catch (IOException e) {
+				System.out.println("Saving file to pi failed. Error message: " + e.getMessage());
+			}
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-    	
-    	
     }
 }
 
