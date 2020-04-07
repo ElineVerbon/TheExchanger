@@ -8,7 +8,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.Optional;
 
-import com.nedap.university.eline.exchanger.shared.SlidingWindowTransmitter;
+import com.nedap.university.eline.exchanger.shared.SendingWindowTransmitter;
 
 public class ClientUploader implements Runnable {
 
@@ -34,7 +34,7 @@ public class ClientUploader implements Runnable {
 	public void startTransmitter(File file) {
 		//TODO start a new thread here?
 		try {
-			new SlidingWindowTransmitter(Files.readAllBytes(file.toPath()), serverAddress, serverPort, socket).uploadFile();
+			new SendingWindowTransmitter(Files.readAllBytes(file.toPath()), serverAddress, serverPort, socket).uploadFile();
 		} catch (IOException e) {
 			clientTUI.showMessage("File could not be converted to byte. Error message: " + e.getMessage());
 		}
