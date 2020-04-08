@@ -23,10 +23,24 @@ public class Server {
  
         try {
             Server server = new Server(port);
+            server.getChoice();
             server.receiveAndSaveFile();
         } catch (SocketException ex) {
             System.out.println("Socket error: " + ex.getMessage());
         } 
+    }
+    
+    public void getChoice() {
+    	//TODO not sure how large to make the buffer
+    	DatagramPacket response = null;
+    	try {
+			response = new DatagramPacket(new byte[1], 1);
+			socket.receive(response);
+		} catch (IOException e) {
+			System.out.println("Receiving a message went wrong. Error message: " + e.getMessage());
+		}
+		return response;
+    	
     }
     
     public void receiveAndSaveFile() {
