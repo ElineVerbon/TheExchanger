@@ -9,4 +9,5 @@ To start the server running on the pi:
 - Type './gradlew deploy' to start the server
 
 To start the client on the computer:
-- In the same terminal window, type './gradlew executeClient'
+- In the same terminal window, type 'java -cp build/libs/NUM2-0.0.1.jar com.nedap.university.eline.exchanger.client.Client'
+- Now answer the prompts!
