@@ -24,7 +24,7 @@ ssh.settings {
   knownHosts = allowAnyHosts // Disable host key verification
 }
 
-mainClassName = 'com.nedap.university.eline.exchanger.server.QuoteServer'
+mainClassName = 'com.nedap.university.eline.exchanger.server.Server'
 version = '0.0.1'
 
 jar {

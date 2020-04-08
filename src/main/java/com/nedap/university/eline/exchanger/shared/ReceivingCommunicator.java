@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class ReceivingWindowReceiver {
+public class ReceivingCommunicator {
 	
 	private ReceivingWindow rws;
 	private String windowType = "RWS";
@@ -16,12 +16,13 @@ public class ReceivingWindowReceiver {
 	private boolean recLastPacket = false;
 	private boolean recAllPackets = false;
 	private int[] lastAckedSeqNumPackPair = new int[] { 0, 0 };
+	private int duplicateAck = 0;
 	
 	private DatagramSocket socket;
 	private InetAddress srcAddress;
 	private int srcPort;
 	
-	public ReceivingWindowReceiver(final DatagramSocket socket) {
+	public ReceivingCommunicator(final DatagramSocket socket) {
 		this.rws= new ReceivingWindow();
 		this.socket = socket;
 		rws.setLAF();
@@ -85,10 +86,10 @@ public class ReceivingWindowReceiver {
 		}
 	}
 	
-
-	
 	public void sendDuplicateAck() {
+		duplicateAck = 1;
 		sendAck();
+		duplicateAck = 0;
 	}
 	
 	public void sendAck() {
@@ -104,10 +105,8 @@ public class ReceivingWindowReceiver {
 			}
 		}
 		int lastPacket = (recAllPackets ? 1 : 0);
-		sendPacket(new byte[] { (byte) lastPacket, (byte) rws.getLFR() }, srcAddress, srcPort, socket);
+		sendPacket(new byte[] { (byte) lastPacket, (byte) duplicateAck, (byte) rws.getLFR() }, srcAddress, srcPort, socket);
 	}
-	
-	
 	
 	public int getPacketNumber(final int seqNumber) {
 		//TODO there should be a nicer way to fix this (to not have to check this)

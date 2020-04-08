@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.URL;
 import java.nio.file.Files;
-import java.util.Optional;
 
-import com.nedap.university.eline.exchanger.shared.SendingWindowTransmitter;
+import javax.swing.JFileChooser;
 
-public class ClientUploader implements Runnable {
+import com.nedap.university.eline.exchanger.shared.SendingCommunicator;
+
+public class ClientUploader extends AbstractClientExecutor {
 
 	private ClientTUI clientTUI;
 	private int serverPort;
@@ -24,22 +24,26 @@ public class ClientUploader implements Runnable {
 		this.socket = socket;
 	}
 	
-	@Override
-	public void run() {
-		startTransmitter(getFile());
+    public void uploadFile() {
+		byte[] choiceIndicator = new byte[] {(byte) 'u'};
+		File toBeUploadedFile = getUserSelectedFile();
+		byte[] fileNameBytes = toBeUploadedFile.getName().getBytes();
+		
+		int port = getCorrectServerPort(choiceIndicator, fileNameBytes, serverAddress, serverPort, socket);
+		
+		new Thread(() -> startSending(toBeUploadedFile, port)).start();
 	}
 	
-	public void startTransmitter(File file) {
-		//TODO start a new thread here?
+	public void startSending(final File file, final int port) {
 		try {
-			new SendingWindowTransmitter(Files.readAllBytes(file.toPath()), serverAddress, serverPort, socket).uploadFile();
+			new SendingCommunicator(Files.readAllBytes(file.toPath()), serverAddress, port, socket).uploadFile();
 		} catch (IOException e) {
 			clientTUI.showMessage("File could not be converted to byte. Error message: " + e.getMessage());
 		}
+		System.out.println("> Message from a previous upload command: File " + file.getName() + " was successfully uploaded onto the pi.");
 	}
     
-    // get files from resources folder
-    private File getFile() {
+    private File getUserSelectedFile() {
     	clientTUI.showMessage("Please select a file to upload.");
     	JFileChooser jfc = new JFileChooser();
         jfc.showDialog(null,"Please Select the File");

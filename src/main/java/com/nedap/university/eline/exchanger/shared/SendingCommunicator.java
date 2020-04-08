@@ -5,30 +5,29 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public class SendingWindowTransmitter implements TimeoutEventHandlerInterface {
+public class SendingCommunicator extends AbstractCommunicator {
     
-	private SendingWindow sws;
+	private SendingWindow sw;
+	private SentPacketTracker packetTracker;
+	
     private byte[] bytesToBeSend;
-    private int numberOfPackets;
     private int lastPacket = 0;
-	private boolean lastPacketSent = false;
-	private Timeout timeout;
+	enum sendReason { PRIMARY, DACK, TIMER }
 	
 	//TODO pull this apart?
     private InetAddress destAddress;
     private int destPort;
-    private Map<Integer, DatagramPacket> sentNotAckedPackets = new HashMap<>();
     private DatagramSocket socket;
 	
 	
-    public SendingWindowTransmitter(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket) {
-		this.sws= new SendingWindow();
+    public SendingCommunicator(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket) {
+		this.sw= new SendingWindow();
+		this.packetTracker = new SentPacketTracker();
 		this.bytesToBeSend = bytes;
-		this.numberOfPackets = (int) Math.ceil(bytesToBeSend.length / sws.getDataSize());
-		this.timeout = new Timeout();
     	this.destAddress = destAddress;
     	this.destPort = destPort;
     	this.socket = socket;
@@ -45,110 +44,141 @@ public class SendingWindowTransmitter implements TimeoutEventHandlerInterface {
     }
 	
 	public void sendPackets() {
-		//TODO add file name
-		System.out.println("Sending a file, total number of packets to send is " + numberOfPackets);
-		
-		while(!lastPacketSent) {
-			
-			sendPacket();
-			//TODO: add timeout
+		while(lastPacket == 0) {
+			prepareAndSendPacket();
 		}
 	}
 	
-	public void sendPacket() {
-		boolean packetSent = false;
-		try {
-			synchronized(sws) {
-				if(sws.getSubsequentLFS() == (sws.getK()-1)) {
-					//TODO add name of file, maybe change this to some other way to track status
-					System.out.println("Still working on sending the file! Sent 256 packets since last message");
-				}
-				
-				if(sws.isInWindow(sws.getLAR(), sws.getSubsequentLFS(), "SWS")) {
-					final DatagramPacket packet = makePacket();
-					socket.send(packet);
-			    	Timeout.SetTimeout(2000, this, sws.getPacketNumber());
-					sentNotAckedPackets.put(sws.getLFS(), packet);
-					if(sws.getPacketNumber() == numberOfPackets) {
-						lastPacketSent = true;
-					}
-					packetSent = true;
-				} 
-			}
-    	} catch (IOException e) {
-    		System.out.println("Packet could not be sent, error message: " + e.getMessage());
-		} 
+	public void prepareAndSendPacket() {
+		boolean inWindow = false;
 		
-		if (!packetSent) {
-			try {
-				//TODO there should be a way to do this without a sleep
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				System.out.println("Transmitter, sendPackets() thread was interrupted while sleeping. Error message: " + e.getMessage());
+		synchronized(sw) {
+			giveUpdateToUser();
+			inWindow = sw.isInWindow(sw.getLAR(), sw.getSubsequentLFS(), "SWS");
+
+			if(inWindow) {
+				sendPacket(makePacket(), sendReason.PRIMARY, sw.getLFS());
 			} 
+		}
+		
+		if (!inWindow) {
+			waitABit();
+		}
+	}
+	
+	public void waitABit() {
+		try {
+			//TODO there should be a way to do this without a sleep
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			System.out.println("Transmitter at sendPackets() thread was interrupted while sleeping. Error message: " + e.getMessage());
 		}
 	}
 
 	
 	public DatagramPacket makePacket() {
-		sws.incrementLFS();
-		sws.incrementPacketNumber();
+		sw.incrementLFS();
+		sw.incrementPacketNumber();
+		lastPacket = ((((sw.getPacketNumber()+1) * sw.getDataSize()) >= bytesToBeSend.length) ? 1 : 0);
 		
-		lastPacket = ((((sws.getPacketNumber()+1) * sws.getDataSize()) >= bytesToBeSend.length) ? 1 : 0);
-		
-		byte[] headerBytes = { (byte) sws.getLFS(), (byte) lastPacket };
-		
-		int to = Math.min((sws.getPacketNumber()) * sws.getDataSize() + sws.getDataSize(), bytesToBeSend.length);
-		
-		byte[] dataBytes = Arrays.copyOfRange(bytesToBeSend, sws.getPacketNumber() * sws.getDataSize(), to);
-		byte[] packetBytes = new byte[dataBytes.length + headerBytes.length];
-		System.arraycopy(headerBytes, 0, packetBytes, 0, sws.getHeaderSize());
-		System.arraycopy(dataBytes, 0, packetBytes, sws.getHeaderSize(), dataBytes.length);
-
-		return new DatagramPacket(packetBytes, packetBytes.length, destAddress, destPort);
+		return makeDataPacket(makeHeader(), makeBody(), destAddress, destPort);
+	}
+	
+	public void sendPacket(final DatagramPacket packet, final sendReason reason, final int seqNumber) {
+    	try {
+			socket.send(packet);
+			setPacketTimer(seqNumber);
+			packetTracker.addPacket(seqNumber, packet);
+//			if (reason == sendReason.PRIMARY) {
+//				System.out.println("Sent packet with seqNumber " + seqNumber + " for the first time.");
+//			} else if (reason == sendReason.DACK) {
+//				System.out.println("Sent packet with seqNumber " + seqNumber + " again after receiving 3+ DAcks.");
+//			} else if (reason == sendReason.TIMER) {
+//				System.out.println("Sent packet with seqNumber " + seqNumber + " again because the timer expired.");
+//			}
+		} catch (IOException e) {
+			System.out.println("Packet could not be sent, error message: " + e.getMessage());
+		}
+    }
+	
+	public void setPacketTimer(final int seqNumber) {
+    	ScheduledExecutorService scheduler
+                                = Executors.newSingleThreadScheduledExecutor();
+     
+        Runnable task = new Runnable() {
+            public void run() {
+            	synchronized(packetTracker) {
+            		ifNotAckedSendAgain(seqNumber);
+            	}
+            }
+        };
+     
+        int delay = 5;
+        scheduler.schedule(task, delay, TimeUnit.SECONDS);
+        scheduler.shutdown();
+    }
+	
+	public byte[] makeHeader() {
+		return new byte[] { (byte) sw.getLFS(), (byte) lastPacket };
+	}
+	
+	public byte[] makeBody() {
+		int to = Math.min((sw.getPacketNumber()) * sw.getDataSize() + sw.getDataSize(), bytesToBeSend.length);
+		return Arrays.copyOfRange(bytesToBeSend, sw.getPacketNumber() * sw.getDataSize(), to);
 	}
     
     public void checkAcks() {
     	boolean lastAck = false;
     	while(!lastAck) {
-	        try {
-	        	byte[] buffer = new byte[2];
-	        	DatagramPacket response = new DatagramPacket(buffer, buffer.length);
-				socket.receive(response);
-				synchronized(sws) {
-					lastAck = ((response.getData()[0] &0xFF) == 1) ? true : false;
-					final int seqNumber = response.getData()[1] &0xFF;
-					
-					if (seqNumber == (sws.getLAR())) {
-						sws.incrementDACKs();
-						if (sws.getDACKs() == 3) {
-							socket.send(sentNotAckedPackets.get(seqNumber + 1));
-						}
-					} else {
-						sws.setDACKsToZero();
-						sws.setLAR(seqNumber);
-						sentNotAckedPackets.remove(seqNumber);
-					} 
-					sws.setAckRec(true);
-				}
-			} catch (IOException e) {
-				System.out.println("Acks could not be received or a packet could not be retransmitted, error message: " + e.getMessage());
-			}
+        	DatagramPacket response = receivePacket(socket, 3);
+        	lastAck = ((response.getData()[0] &0xFF) == 1) ? true : false;
+			final int seqNumber = response.getData()[2] &0xFF;
+//			System.out.println("Ack with seqNumber " + seqNumber + " received");
+			
+			processAck(seqNumber);
 	    }
-    	System.out.println("All done!");
+//    	System.out.println("File was successfully uploaded!");
     }
 
-	@Override
-	public void TimeoutElapsed(Object tag) {
-        int packetNumber =(Integer)tag;
-        if(sentNotAckedPackets.containsKey(packetNumber%sws.getK())) {
-        	System.out.println("Timer expired for packet with the number " + packetNumber + ". Resending packet.");
-        	try {
-				socket.send(sentNotAckedPackets.get(packetNumber%sws.getK()));
-			} catch (IOException e) {
-				System.out.println("Packet with the number " + packetNumber + " could not be retransmitted after a timeout"
-						+ ", error message: " + e.getMessage());
-			}
-        }
-	}
+    public void processAck(final int seqNumber) {
+    	synchronized(sw) {
+			if (seqNumber == (sw.getLAR())) {
+				processDuplicateAck(seqNumber);
+			} else {
+				processNewAck(seqNumber);
+			} 
+			sw.setAckRec(true);
+		}
+    }
+    
+    public void processNewAck(final int seqNumber) {
+    	sw.setDACKsToZero();
+    	packetTracker.updateSentPacketsList(seqNumber, sw.getLAR(), sw.getK());
+		sw.setLAR(seqNumber);
+    }
+
+    
+    public void processDuplicateAck(final int seqNumber) {
+    	sw.incrementDACKs();
+		if (sw.getDACKs() == 3) {
+			ifNotAckedSendAgain(seqNumber);
+		}
+    }
+    
+    public void ifNotAckedSendAgain(final int seqNumber) {
+    	synchronized(packetTracker) {
+	    	if(packetTracker.isAcked(seqNumber)) {
+	    		DatagramPacket packet = packetTracker.getPreviouslySentPacket(seqNumber);
+	    		packetTracker.removePacket(seqNumber);
+	    		sendPacket(packet, sendReason.TIMER, seqNumber);
+	    	}
+    	}
+    }
+    
+    public void giveUpdateToUser() {
+    	if(sw.getSubsequentLFS() == (sw.getK()-1)) {
+			//TODO add name of file, maybe change this to some other way to track status
+//			System.out.println("Still working on sending the file! Sent 256 packets since last message");
+		}
+    }
 }

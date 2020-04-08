@@ -3,7 +3,7 @@ package com.nedap.university.eline.exchanger.server;
 import java.io.*;
 import java.net.*;
 
-import com.nedap.university.eline.exchanger.shared.ReceivingWindowReceiver;
+import com.nedap.university.eline.exchanger.shared.ReceivingCommunicator;
 
 /**
  * This program demonstrates how to implement a UDP server program.
@@ -30,7 +30,8 @@ public class Server {
     }
     
     public void receiveAndSaveFile() {
-    	String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/fileLocalTestUpload.pdf";
+    	//String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/fileLocalTestUpload.pdf";
+    	String absoluteFilePath = "/home/pi/fileLocalTestUpload.pdf";
     	File file;
     	
         try {
@@ -40,7 +41,7 @@ public class Server {
 			} else {
 				System.out.println("File already exists, overwriting it!");
 			}
-		    byte[] bytes = new ReceivingWindowReceiver(socket).receiveFile();
+		    byte[] bytes = new ReceivingCommunicator(socket).receiveFile();
 	    	try {
 	    		OutputStream os = new FileOutputStream(file);
 				os.write(bytes);

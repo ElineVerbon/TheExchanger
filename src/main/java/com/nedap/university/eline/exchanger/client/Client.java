@@ -1,49 +1,50 @@
 package com.nedap.university.eline.exchanger.client;
 
-import java.io.*;
-import java.net.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
- 
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
 public class Client {
-	private ClientTUI clientTUI;
 	
-	DatagramSocket socket;
-	InetAddress serverAddress;
-	final int serverPort = 8080;
-	//final String hostname = "nu-pi-stefan"; TODO: uncomment!
+	private ClientTUI clientTUI;
+	private DatagramSocket socket;
+	private InetAddress serverAddress;
+	private final int serverPort = 8080;
+	private final String hostname = "nu-pi-stefan";
+	private boolean clientIsDone = false;
 	
 	public Client() {
-		clientTUI = new ClientTUI();
+	    try {
+	    	clientTUI = new ClientTUI();
+	    	serverAddress = InetAddress.getByName(hostname);
+			socket = new DatagramSocket();
+			clientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
+		} catch (SocketException e) {
+			System.out.println("Socket could not be opened. Error message: " + e.getMessage());
+		} catch (UnknownHostException e) {
+			System.out.println("InetAddress could not be resolved. Error message: " + e.getMessage());
+		}
 	}
 	
     public static void main(String[] args) {
     	Client client = new Client();
-    	
     	client.start();
     }
     
     public void start() {
     	
-        try {
-            //serverAddress = InetAddress.getByName(hostname); TODO: uncomment!
-        	serverAddress = InetAddress.getLocalHost();
-            DatagramSocket socket = new DatagramSocket();
-            //clientTUI.showMessage("Connection established with \"" + hostname + "\"."); TODO: uncomment!
-            
-            List<String> acceptableAnswers = new ArrayList<String>(Arrays.asList("d", "u", "e"));
-            String usersChoice = clientTUI.getString("Do you want to download, upload or exit? (d, u or e)", acceptableAnswers);
-            
+    	String usersChoice = clientTUI.getChoice("Do you want to download, upload or exit? (d, u or e)");
+    	
+    	while(!clientIsDone) {
             if(usersChoice.equals("u")) {
-            	ClientUploader uploader = new ClientUploader(clientTUI, serverPort, serverAddress, socket);
-            	//TODO, maybe I should start the Thread in the uploader itself once a file has been chosen
-            	new Thread(uploader).start();
+            	new ClientUploader(clientTUI, serverPort, serverAddress, socket).uploadFile();
+            } else if(usersChoice.equals("e")) {
+            	clientIsDone = true;
             }
-        } catch (IOException ex) {
-            System.out.println("Client error: " + ex.getMessage());
-            ex.printStackTrace();
-        } 
+            
+            usersChoice = clientTUI.getChoice("Do you want to download or upload something else or do you want to exit? (d, u or e)");
+    	}
     }
 }
 
