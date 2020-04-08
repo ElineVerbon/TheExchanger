@@ -8,13 +8,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SendingWindowTransmitter {
+public class SendingWindowTransmitter implements TimeoutEventHandlerInterface {
     
 	private SendingWindow sws;
     private byte[] bytesToBeSend;
     private int numberOfPackets;
     private int lastPacket = 0;
 	private boolean lastPacketSent = false;
+	private Timeout timeout;
 	
 	//TODO pull this apart?
     private InetAddress destAddress;
@@ -27,6 +28,7 @@ public class SendingWindowTransmitter {
 		this.sws= new SendingWindow();
 		this.bytesToBeSend = bytes;
 		this.numberOfPackets = (int) Math.ceil(bytesToBeSend.length / sws.getDataSize());
+		this.timeout = new Timeout();
     	this.destAddress = destAddress;
     	this.destPort = destPort;
     	this.socket = socket;
@@ -135,4 +137,18 @@ public class SendingWindowTransmitter {
 	    }
     	System.out.println("All done!");
     }
+
+	@Override
+	public void TimeoutElapsed(Object tag) {
+        int packetNumber =(Integer)tag;
+        if(sentNotAckedPackets.containsKey(packetNumber%sws.getK())) {
+        	System.out.println("Timer expired for packet with the number " + packetNumber + ". Resending packet.");
+        	try {
+				socket.send(sentNotAckedPackets.get(packetNumber%sws.getK()));
+			} catch (IOException e) {
+				System.out.println("Packet with the number " + packetNumber + " could not be retransmitted after a timeout"
+						+ ", error message: " + e.getMessage());
+			}
+        }
+	}
 }
