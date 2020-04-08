@@ -26,9 +26,7 @@ public class ClientUploader implements Runnable {
 	
 	@Override
 	public void run() {
-		clientTUI.showMessage("You chose to upload a file.");
-    	
-		getFileFromResources().ifPresentOrElse(file -> startTransmitter(file), () -> clientTUI.showMessage("File could not be read."));
+		startTransmitter(getFile());
 	}
 	
 	public void startTransmitter(File file) {
@@ -41,26 +39,13 @@ public class ClientUploader implements Runnable {
 	}
     
     // get files from resources folder
-    private Optional<File> getFileFromResources() {
-    	boolean knownFilename = false;
-    	File fileToUpload = null;
-    	
-    	while(!knownFilename) {
-    		String filename = clientTUI.getFileName("Please type the name of the file you wish to upload: ");
-	        ClassLoader classLoader = getClass().getClassLoader();
-	
-	        URL resource = classLoader.getResource("com/nedap/university/eline/exchanger/client/" + filename);
-	        if (resource == null) {
-	            clientTUI.showMessage("This file is not present on the Client, please try again.");
-	            //TODO let user break out of loop
-	        } else {
-	            fileToUpload = new File(resource.getFile());
-	            knownFilename = true;
-	        }
-    	}
-    	return Optional.ofNullable(fileToUpload);
+    private File getFile() {
+    	clientTUI.showMessage("Please select a file to upload.");
+    	JFileChooser jfc = new JFileChooser();
+        jfc.showDialog(null,"Please Select the File");
+        jfc.setVisible(true);
+        File file = jfc.getSelectedFile();
+        System.out.println("You selected the file " + file.getName());
+        return file;
     }
-    
-    
-
 }
