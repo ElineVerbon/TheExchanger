@@ -25,9 +25,9 @@ public class ClientUploader extends AbstractClientExecutor {
 	}
 	
     public void uploadFile() {
-		byte[] choiceIndicator = new byte[] {(byte) 'u'};
+//		byte[] choiceIndicator = new byte[] {(byte) 'u'};
 		File toBeUploadedFile = getUserSelectedFile();
-		byte[] fileNameBytes = toBeUploadedFile.getName().getBytes();
+//		byte[] fileNameBytes = toBeUploadedFile.getName().getBytes();
 		
 //		int port = getCorrectServerPort(choiceIndicator, fileNameBytes, serverAddress, serverPort, socket);
 		
