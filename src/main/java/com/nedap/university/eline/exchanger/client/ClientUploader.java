@@ -8,7 +8,7 @@ import java.nio.file.Files;
 
 import javax.swing.JFileChooser;
 
-import com.nedap.university.eline.exchanger.shared.SendingCommunicator;
+import com.nedap.university.eline.exchanger.manager.FileSendManager;
 
 public class ClientUploader extends AbstractClientExecutor {
 
@@ -36,7 +36,7 @@ public class ClientUploader extends AbstractClientExecutor {
 	
 	public void startSending(final File file, final int port) {
 		try {
-			new SendingCommunicator(Files.readAllBytes(file.toPath()), serverAddress, port, socket).uploadFile();
+			new FileSendManager(Files.readAllBytes(file.toPath()), serverAddress, port, socket).sendFile();
 		} catch (IOException e) {
 			clientTUI.showMessage("File could not be converted to byte. Error message: " + e.getMessage());
 		}
