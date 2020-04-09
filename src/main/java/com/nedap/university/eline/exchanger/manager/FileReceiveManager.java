@@ -56,6 +56,7 @@ public class FileReceiveManager {
 			srcAddress = packet.getAddress();
 			srcPort = packet.getPort();
 			bytes = packet.getData();
+			bytes = Arrays.copyOfRange(bytes, 0, packet.getLength());
 		} catch (IOException e) {
 			System.out.println("Could not receive packet. Error message: " + e.getMessage());
 		}
