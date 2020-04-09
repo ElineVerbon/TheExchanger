@@ -11,7 +11,7 @@ public class SendingWindow extends AbstractWindow {
 	public int getSWS() {
 		return SWS;
 	}
-	
+
 	public void incrementLFS() {
 		synchronized (this) {
 			this.LFS = (LFS + 1) % K;
