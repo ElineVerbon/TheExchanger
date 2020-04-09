@@ -3,7 +3,7 @@ package com.nedap.university.eline.exchanger.server;
 import java.io.*;
 import java.net.*;
 
-import com.nedap.university.eline.exchanger.shared.ReceivingCommunicator;
+import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
 
 /**
  * This program demonstrates how to implement a UDP server program.
@@ -55,7 +55,7 @@ public class Server {
 			} else {
 				System.out.println("File already exists, overwriting it!");
 			}
-		    byte[] bytes = new ReceivingCommunicator(socket).receiveFile();
+		    byte[] bytes = new FileReceiveManager(socket).receiveFile();
 	    	try {
 	    		OutputStream os = new FileOutputStream(file);
 				os.write(bytes);
