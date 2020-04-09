@@ -29,9 +29,9 @@ public class ClientUploader extends AbstractClientExecutor {
 		File toBeUploadedFile = getUserSelectedFile();
 		byte[] fileNameBytes = toBeUploadedFile.getName().getBytes();
 		
-		int port = getCorrectServerPort(choiceIndicator, fileNameBytes, serverAddress, serverPort, socket);
+//		int port = getCorrectServerPort(choiceIndicator, fileNameBytes, serverAddress, serverPort, socket);
 		
-		new Thread(() -> startSending(toBeUploadedFile, port)).start();
+		new Thread(() -> startSending(toBeUploadedFile, serverPort)).start();
 	}
 	
 	public void startSending(final File file, final int port) {
