@@ -40,7 +40,7 @@ public class ClientUploader extends AbstractClientExecutor {
 		} catch (IOException e) {
 			clientTUI.showMessage("File could not be converted to byte. Error message: " + e.getMessage());
 		}
-		System.out.println("> Message from a previous upload command: File " + file.getName() + " was successfully uploaded onto the pi.");
+//		System.out.println("> Message from a previous upload command: File " + file.getName() + " was successfully uploaded onto the pi.");
 	}
     
     public File getUserSelectedFile() {
