@@ -23,7 +23,7 @@ public class Server {
  
         try {
             Server server = new Server(port);
-            server.getChoice();
+//            server.getChoice();
             server.receiveAndSaveFile();
         } catch (SocketException ex) {
             System.out.println("Socket error: " + ex.getMessage());
