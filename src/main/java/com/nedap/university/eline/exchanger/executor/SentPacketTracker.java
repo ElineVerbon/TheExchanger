@@ -48,22 +48,22 @@ public class SentPacketTracker {
     	synchronized(this) {
 	    	if (ackedSeqNum > LAR) {
 		    	for (int i = LAR + 1; i <= ackedSeqNum; i++) {
-		    		if (sentNotAckedPackets.containsKey(ackedSeqNum)) {
-		    			sentNotAckedPackets.remove(ackedSeqNum);
-		    		}
+		    		removePacketWhenPresent(i);
 		    	}
 	    	} else {
 	    		for (int i = LAR + 1; i <= (K + 1); i++) {
-		    		if (sentNotAckedPackets.containsKey(ackedSeqNum)) {
-		    			sentNotAckedPackets.remove(ackedSeqNum);
-		    		}
+	    			removePacketWhenPresent(i);
 		    	}
 	    		for (int i = 0; i <= ackedSeqNum; i++) {
-	    			if (sentNotAckedPackets.containsKey(ackedSeqNum)) {
-		    			sentNotAckedPackets.remove(ackedSeqNum);
-		    		}
+	    			removePacketWhenPresent(i);
 	    		}
 	    	}
     	}
+    }
+    
+    public void removePacketWhenPresent(final int i) {
+    	if (sentNotAckedPackets.containsKey(i)) {
+			removePacket(i);
+		}
     }
 }
