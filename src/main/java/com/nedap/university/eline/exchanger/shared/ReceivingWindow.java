@@ -9,10 +9,6 @@ public class ReceivingWindow extends AbstractWindow {
 		return RWS;
 	}
 	
-	public int getK() {
-		return K;
-	}
-	
 	public void incrementLFR() {
 		synchronized (this) {
 			this.LFR = (LFR + 1) % K;

@@ -15,6 +15,10 @@ abstract class AbstractWindow {
     public int getHeaderSize() {
     	return HEADERSIZE;
     }
+    
+    public int getK() {
+		return K;
+	}
     	
     public int seqNumToAckNum(final int seqNumber, final int lastAck, final int lastSeqNumber) {
     	final int seqRound = (seqNumber >= lastSeqNumber) ? lastAck / K : lastAck / K + 1;

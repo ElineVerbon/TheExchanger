@@ -30,7 +30,7 @@ public class Server {
         } 
     }
     
-    public void getChoice() {
+    public DatagramPacket getChoice() {
     	//TODO not sure how large to make the buffer
     	DatagramPacket response = null;
     	try {

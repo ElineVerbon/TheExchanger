@@ -43,7 +43,7 @@ public class ClientUploader extends AbstractClientExecutor {
 		System.out.println("> Message from a previous upload command: File " + file.getName() + " was successfully uploaded onto the pi.");
 	}
     
-    private File getUserSelectedFile() {
+    public File getUserSelectedFile() {
     	clientTUI.showMessage("Please select a file to upload.");
     	JFileChooser jfc = new JFileChooser();
         jfc.showDialog(null,"Please Select the File");
