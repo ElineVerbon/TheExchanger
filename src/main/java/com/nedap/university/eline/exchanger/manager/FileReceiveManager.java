@@ -8,9 +8,12 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.nedap.university.eline.exchanger.executor.FilePacketReceiver;
 import com.nedap.university.eline.exchanger.window.ReceivingWindow;
 
 public class FileReceiveManager {
+	
+	private FilePacketReceiver receiver;
 	
 	private ReceivingWindow rws;
 	private String windowType = "RWS";
@@ -27,6 +30,7 @@ public class FileReceiveManager {
 	public FileReceiveManager(final DatagramSocket socket) {
 		this.rws= new ReceivingWindow();
 		this.socket = socket;
+		receiver = new FilePacketReceiver(socket);
     }
 	
 	//this could be either the client or the server. what they do with it, depends on who is using this method.
