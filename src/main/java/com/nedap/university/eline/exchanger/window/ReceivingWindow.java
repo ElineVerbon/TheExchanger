@@ -5,6 +5,10 @@ public class ReceivingWindow extends AbstractWindow {
 	private int LAF; //LargestAcceptableFrame
 	private int LFR = -1; //LastFrameReceived = last consecutive frame
 	
+	public ReceivingWindow() {
+		setLAF();
+	}
+	
 	public int getRWS() {
 		return RWS;
 	}

@@ -27,7 +27,6 @@ public class FileReceiveManager {
 	public FileReceiveManager(final DatagramSocket socket) {
 		this.rws= new ReceivingWindow();
 		this.socket = socket;
-		rws.setLAF();
     }
 	
 	//this could be either the client or the server. what they do with it, depends on who is using this method.
