@@ -8,7 +8,7 @@ public class AckPacketMaker {
 	
 	private InetAddress destAddress;
     private int destPort;
-    private static int ACK_PACKET_LENGTH = 2 + SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH;
+    public static int ACK_PACKET_LENGTH = 2 + SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH;
     
 	public AckPacketMaker(final InetAddress destAddress, final int destPort) {
 		this.destAddress = destAddress;
