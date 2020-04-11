@@ -24,17 +24,16 @@ public class FilePacketMaker {
 		}
 		
 		final int lastPacket = ((((packetNumber+1) * FilePacketContents.DATASIZE) >= bytes.length) ? 1 : 0);
-		final byte[] packetBytes = makeByteArrayForPacket(bytes, packetNumber, LFS, lastPacket);
+		final byte[] packetBytes = makeByteArrayForPacket(packetNumber, LFS, lastPacket);
 		
 		DatagramPacket packet = new DatagramPacket(packetBytes, packetBytes.length, destAddress, destPort);
 		
 		return Optional.of(packet);
 	}
 	
-	public static byte[] makeByteArrayForPacket(final byte[] bytes, final int packetNumber, 
-			final int LFS, final int lastPacket) {
+	public byte[] makeByteArrayForPacket(final int packetNumber, final int LFS, final int lastPacket) {
 		byte[] header = makeHeader(LFS, lastPacket);
-		byte[] body = makeBody(bytes, packetNumber);
+		byte[] body = makeBody(packetNumber);
 		
 		byte[] packetBytes = new byte[header.length + body.length];
 		System.arraycopy(header, 0, packetBytes, 0, header.length);
@@ -42,7 +41,7 @@ public class FilePacketMaker {
 		return packetBytes;
 	}
 
-	public static byte[] makeHeader(final int LFS, final int lastPacket) {
+	public byte[] makeHeader(final int LFS, final int lastPacket) {
 		byte[] seqNumInBytes = SequenceNumberCalculator.turnSeqNumIntoBytes(LFS);
 		
 		byte[] headerBytes = new byte[FilePacketContents.HEADERSIZE];
@@ -52,8 +51,7 @@ public class FilePacketMaker {
 		return headerBytes;
 	}
 	
-	public static byte[] makeBody(final byte[] bytes, final int packetNumber) {
-		System.out.println(packetNumber);
+	public byte[] makeBody(final int packetNumber) {
 		int to = Math.min(packetNumber * FilePacketContents.DATASIZE + FilePacketContents.DATASIZE, bytes.length);
 		return Arrays.copyOfRange(bytes, packetNumber * FilePacketContents.DATASIZE, to);
 	}

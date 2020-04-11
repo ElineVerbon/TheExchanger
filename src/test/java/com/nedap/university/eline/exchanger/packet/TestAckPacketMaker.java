@@ -19,6 +19,6 @@ public class TestAckPacketMaker {
 		
 		assertEquals(port, packet.getPort());
 		assertEquals(InetAddress.getLocalHost(), packet.getAddress());
-		assertEquals(AckPacketMaker.ACK_PACKET_LENGTH, packet.getLength());
+		assertEquals(AckPacketContents.getAckPacketLength(), packet.getLength());
 	}
 }
