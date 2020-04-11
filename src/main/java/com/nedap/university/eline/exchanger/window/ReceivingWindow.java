@@ -2,12 +2,7 @@ package com.nedap.university.eline.exchanger.window;
 
 public class ReceivingWindow extends AbstractWindow {
 	
-	private int largestAcceptablePacket;
 	private int largestConsecutivePacketReceived = -1; //LastFrameReceived = last consecutive frame
-	
-	public ReceivingWindow() {
-		setLargestAcceptablePacket();
-	}
 	
 	public int getReceivingWindowSize() {
 		return RECEIVING_WINDOW_SIZE;
@@ -35,18 +30,6 @@ public class ReceivingWindow extends AbstractWindow {
 		//TODO throw error when not in sequenceNumberSpace!
 		synchronized (this) {
 			largestConsecutivePacketReceived = newlargestConsecutivePacket;
-		}
-	}
-	
-	public int getLargestAcceptablePacket() {
-		synchronized (this) {
-			return largestAcceptablePacket;
-		}
-	}
-	
-	public void setLargestAcceptablePacket() {
-		synchronized (this) {
-			largestAcceptablePacket = RECEIVING_WINDOW_SIZE + largestConsecutivePacketReceived;
 		}
 	}
 	

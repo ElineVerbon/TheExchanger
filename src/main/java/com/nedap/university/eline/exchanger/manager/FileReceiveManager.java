@@ -112,7 +112,6 @@ public class FileReceiveManager {
 		} else {
 			final int highestConPacketAccepted = packetTracker.getHighestConsAccepFilePacket(lastAckedSeqNumPacNumPair[1], receivingWindow.getReceivingWindowSize());
 			receivingWindow.setLargestConsecutivePacketReceived(highestConPacketAccepted%receivingWindow.getSequenceNumberSpace());
-			receivingWindow.setLargestAcceptablePacket();
 		}
 	}
 	
