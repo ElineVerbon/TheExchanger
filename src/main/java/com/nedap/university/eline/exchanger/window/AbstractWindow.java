@@ -1,20 +1,10 @@
 package com.nedap.university.eline.exchanger.window;
 
-abstract class AbstractWindow {
+public abstract class AbstractWindow {
 
-	static final int HEADERSIZE = 2;
-	static final int DATASIZE = 512;
-    static final int SWS = 50; //TODO make it possible to change this depending on time out / DACK occurence
-    static final int K = 256;
-    static final int RWS = 50;
-    
-    public int getDataSize() {
-    	return DATASIZE;
-    }
-    
-    public int getHeaderSize() {
-    	return HEADERSIZE;
-    }
+    static final int SWS = 750; //TODO make it possible to change this depending on time out / DACK occurence
+    static final int K = 2000;
+    static final int RWS = 750;
     
     public int getK() {
 		return K;
@@ -29,6 +19,7 @@ abstract class AbstractWindow {
 		int windowSize = (windowType == "SWS") ? SWS : RWS;
 		int upperboundSW = (windowSize + startWindow) % K;
 		int lowerboundSW = startWindow;
+		
 		if((windowSize + startWindow) / K == 0) {
 			return ((aNumber > lowerboundSW && aNumber <= upperboundSW) ? true : false);
 		} else {
