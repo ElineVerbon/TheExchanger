@@ -1,129 +1,87 @@
 package com.nedap.university.eline.exchanger.manager;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.TreeMap;
 
-import com.nedap.university.eline.exchanger.executor.FilePacketReceiver;
+import com.nedap.university.eline.exchanger.executor.AckSender;
+import com.nedap.university.eline.exchanger.executor.ReceivedFilePacketTracker;
+import com.nedap.university.eline.exchanger.executor.Receiver;
+import com.nedap.university.eline.exchanger.packet.FilePacketContents;
+import com.nedap.university.eline.exchanger.packet.AckPacketMaker;
 import com.nedap.university.eline.exchanger.window.ReceivingWindow;
 
 public class FileReceiveManager {
 	
-	private FilePacketReceiver receiver;
-	
 	private ReceivingWindow rws;
-	private String windowType = "RWS";
-	private Map<Integer, byte[]> receivedPackets = new TreeMap<>();
-	private boolean recLastPacket = false;
-	private boolean recAllPackets = false;
-	private int[] lastAckedSeqNumPackPair = new int[] { 0, 0 };
-	private int duplicateAck = 0;
+	private ReceivedFilePacketTracker packetTracker;
+	private Receiver receiver;
+	private AckPacketMaker ackMaker;
+	private AckSender ackSender;
 	
-	private DatagramSocket socket;
-	private InetAddress srcAddress;
-	private int srcPort;
+	private int[] lastAckedSeqNumPacNumPair = new int[2];
+	public boolean firstPacket = true;
+	public boolean recAllPackets = false;
+	private boolean recLastPacket = false;
+	private boolean duplicateAck = false;
 	
 	public FileReceiveManager(final DatagramSocket socket) {
 		this.rws= new ReceivingWindow();
-		this.socket = socket;
-		receiver = new FilePacketReceiver(socket);
+		this.packetTracker = new ReceivedFilePacketTracker();
+		receiver = new Receiver(socket);
+		this.ackSender = new AckSender(socket);
     }
 	
-	//this could be either the client or the server. what they do with it, depends on who is using this method.
 	public byte[] receiveFile() {
 		
 		System.out.println("Receiving a file...");
 		
 		while(!recAllPackets) {
-			final byte[] bytes = receivePacket();
-			recLastPacket = (bytes[1] == 1);
-			savePacketAndSendAck(bytes);
+			final DatagramPacket packet = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
+			if(firstPacket) {
+				this.ackMaker = new AckPacketMaker(packet.getAddress(), packet.getPort());
+			}
+			processPacket(new FilePacketContents(packet));
+			firstPacket = false;
 		}
 		
 		System.out.println("Received all the packets!");
 		return collectAllBytes();
 	}
 	
-	public byte[] receivePacket() {
-		byte[] bytes = null;
+	public void processPacket(final FilePacketContents packet) {
 		
-		try {
-			byte[] buffer = new byte[rws.getHeaderSize() + rws.getDataSize()];
-		    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-			socket.receive(packet);
-			
-			srcAddress = packet.getAddress();
-			srcPort = packet.getPort();
-			bytes = packet.getData();
-			bytes = Arrays.copyOfRange(bytes, 0, packet.getLength());
-		} catch (IOException e) {
-			System.out.println("Could not receive packet. Error message: " + e.getMessage());
-		}
-		
-		return bytes;
-	}
-	
-	public void savePacketAndSendAck(final byte[] bytes) {
-		int seqNumber = bytes[0] &0xFF; //TODO make getSeqNumber in Header class (first make header class)
-		
-		if(seqNumber == (rws.getK() - 1)) {
-			//TODO add name of file
-			System.out.println("Still working on receiving the file! Received about 256 packets since last message");
-		}
-		
-		if(!rws.isInWindow(rws.getLFR(), seqNumber, windowType)) {
+		if(!rws.isInWindow(packet.getSeqNum())) {
 			sendDuplicateAck();
 			return;
 		}
 		
-		final int packetNumber = getPacketNumber(seqNumber);
-		if (seqNumber != rws.getSubsequentLFR()) {
+		final int packetNumber = getPacketNumber(packet.getSeqNum());
+		
+//		System.out.println("Received packet with seqNum " + packet.getSeqNum() + " and PacketNum " + packetNumber);
+		
+		packetTracker.savePacket(packet.getDataBytes(), packetNumber);
+		if(packet.isLastPacket()) {
+			recLastPacket = true;
+		}
+
+		if (packet.getSeqNum() != rws.getSubsequentLFR()) {
 			sendDuplicateAck();
-			savePacket(packetNumber, bytes);
 		} else {
-			savePacket(packetNumber, bytes);
 			setLFRToHighestConsAck(packetNumber);
 			sendAck();
-			lastAckedSeqNumPackPair = new int[] { seqNumber, packetNumber };
+			lastAckedSeqNumPacNumPair = new int[] { packet.getSeqNum(), packetNumber };
 		}
-	}
-	
-	public void sendDuplicateAck() {
-		duplicateAck = 1;
-		sendAck();
-		duplicateAck = 0;
-	}
-	
-	public void sendAck() {
-		if(recLastPacket) {
-			int packet = 0;
-			for(Map.Entry<Integer, byte[]> entry : receivedPackets.entrySet()) {
-				recAllPackets = true;
-				if (entry.getKey() != packet) {
-					recAllPackets = false;
-					break;
-				}
-				packet++;
-			}
-		}
-		int lastPacket = (recAllPackets ? 1 : 0);
-		sendPacket(new byte[] { (byte) lastPacket, (byte) duplicateAck, (byte) rws.getLFR() }, srcAddress, srcPort, socket);
 	}
 	
 	public int getPacketNumber(final int seqNumber) {
-		//TODO there should be a nicer way to fix this (to not have to check this)
 		int packetNumber;
-		if(rws.getLFR() == -1) {
+		if(firstPacket) {
 			packetNumber = seqNumber;
 			return packetNumber;
 		} else {
-			//this is the last know seqnum / packetnum pair. This new packetNum can be at most RWS packets higher, cannot be lower (else not in window)
-			int lastSeenSeqNumber = lastAckedSeqNumPackPair[0];
-			int lastSeenPacketNumber = lastAckedSeqNumPackPair[1];
+			int lastSeenSeqNumber = lastAckedSeqNumPacNumPair[0];
+			int lastSeenPacketNumber = lastAckedSeqNumPacNumPair[1];
 			
 			if (seqNumber > lastSeenSeqNumber) {
 				packetNumber = lastSeenPacketNumber + (seqNumber - lastSeenSeqNumber);
@@ -135,49 +93,46 @@ public class FileReceiveManager {
 		}
 	}
 	
-	public void savePacket(final int packetNumber, final byte[] bytes) {
-		if(!receivedPackets.containsKey(packetNumber)) {
-			receivedPackets.put(packetNumber, Arrays.copyOfRange(bytes, rws.getHeaderSize(), bytes.length));
-			//TODO there has to be a nicer way to check whether I received all previous packets
-			
-		}
+	public void sendDuplicateAck() {
+		duplicateAck = true;
+		sendAck();
+		duplicateAck = false;
 	}
 	
-	public void sendPacket(byte[] bytes, InetAddress address, int port, DatagramSocket socket) {
-		try {
-			socket.send(new DatagramPacket(bytes, bytes.length, address, port));
-		} catch (IOException e) {
-			System.out.println("Could not send packet to " + address + ". Error message : " + e.getMessage());
-		}
+	public void sendAck() {
+//		System.out.println("sending an ack with seqnum " + rws.getLFR());
+		recAllPackets = recLastPacket && packetTracker.allPacketsReceived();
+		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, rws.getLFR());
+		ackSender.sendPacket(ack);
 	}
 	
 	public void setLFRToHighestConsAck(final int packetNumber) {
 		if(packetNumber == 0) {
 			rws.setLFR(0);
 		} else {
-			for(int i = lastAckedSeqNumPackPair[1] + 1; i <= lastAckedSeqNumPackPair[1] + rws.getRWS(); i++) {
-				if(receivedPackets.containsKey(i)) {
-					rws.setLFR(i%rws.getK());
-					rws.setLAF();
-				} else {
-					return;
-				}
-			}
+			final int highestConPacketAccepted = packetTracker.getHighestConsAccepFilePacket(lastAckedSeqNumPacNumPair[1], rws.getRWS());
+			rws.setLFR(highestConPacketAccepted%rws.getK());
+			rws.setLAF();
 		}
 	}
 	
 	public byte[] collectAllBytes() {
 		byte[] allBytes = {};
 		
-		for(Map.Entry<Integer, byte[]> entry : receivedPackets.entrySet()) {
+		System.out.println("Collecting all bytes, please be patient!");
+		
+		for(Map.Entry<Integer, byte[]> entry : packetTracker.getAllReceivedPackets().entrySet()) {
 			byte[] toBeAddedBytes = entry.getValue();
 			byte[] newAllBytes = new byte[allBytes.length + toBeAddedBytes.length];
 			System.arraycopy(allBytes, 0, newAllBytes, 0, allBytes.length);
 			System.arraycopy(toBeAddedBytes, 0, newAllBytes, allBytes.length, toBeAddedBytes.length);
 			allBytes = newAllBytes;
+			
+			System.out.println(allBytes.length);
 			//TODO: make into something like below
 			//receivedPackets.entrySet().stream().map(element -> element.getValue()).collect(collector)
 		}
+		System.out.println("Length of allBytes: " + allBytes.length);
 		return allBytes;
 	}
 }

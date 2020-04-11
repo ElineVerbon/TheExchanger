@@ -5,29 +5,30 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Optional;
 
-import com.nedap.university.eline.exchanger.executor.AckReceiver;
 import com.nedap.university.eline.exchanger.executor.FilePacketSender;
-import com.nedap.university.eline.exchanger.executor.SentPacketTracker;
+import com.nedap.university.eline.exchanger.executor.Receiver;
+import com.nedap.university.eline.exchanger.executor.SentFilePacketTracker;
+import com.nedap.university.eline.exchanger.packet.AckPacketContents;
 import com.nedap.university.eline.exchanger.packet.FilePacketMaker;
 import com.nedap.university.eline.exchanger.window.SendingWindow;
 
 public class FileSendManager {
     
 	private SendingWindow sw;
-	private SentPacketTracker packetTracker;
+	private SentFilePacketTracker packetTracker;
 	private FilePacketMaker filePacketMaker;
 	private FilePacketSender filePacketSender;
-	private AckReceiver ackReceiver;
+	private Receiver receiver;
 	
 	//TODO make not public?
 	public enum sendReason { PRIMARY, DACK, TIMER }
 	
     public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket) {
 		this.sw= new SendingWindow();
-		this.packetTracker = new SentPacketTracker();
-		this.filePacketMaker = new FilePacketMaker(bytes, destAddress, destPort, sw.getDataSize());
+		this.packetTracker = new SentFilePacketTracker();
+		this.filePacketMaker = new FilePacketMaker(bytes, destAddress, destPort);
 		this.filePacketSender = new FilePacketSender(socket, packetTracker);
-		this.ackReceiver = new AckReceiver(socket);
+		this.receiver = new Receiver(socket);
     }
     
 	public void sendFile() { //TODO rename
@@ -57,7 +58,7 @@ public class FileSendManager {
 					if (packet == null) {
 						noMorePackets = true;
 					} else {
-						filePacketSender.sendPacket(packet.get(), sendReason.PRIMARY, sw.getLFS());
+						filePacketSender.sendFilePacket(packet.get(), sendReason.PRIMARY, sw.getLFS());
 					}
 				} 
 			}
@@ -78,16 +79,19 @@ public class FileSendManager {
 	}
 	
     public void checkAcks() {
-    	
-    	while(!ackReceiver.isDone()) {
-    		final int seqNumber = ackReceiver.getAck();
-			System.out.print("Ack with seqNumber " + seqNumber + " received. ");
-			processAck(seqNumber);
-	    }
+    	boolean lastAck = false;
+    	while (!lastAck) {
+    		DatagramPacket packet = receiver.receivePacket(AckPacketContents.getAckPacketLength());
+    		AckPacketContents contents = new AckPacketContents(packet);
+    		lastAck = contents.isAckOfLastPacket();
+			processAck(contents.getSeqNum());
+	    } 
     	System.out.println("File was successfully uploaded!");
     }
 
     public void processAck(final int seqNumber) {
+    	System.out.print("Ack with seqNumber " + seqNumber + " received. ");
+    	
     	synchronized(sw) {
     		System.out.println("Current LAR is " + sw.getLAR());
 			if (seqNumber == (sw.getLAR())) {
@@ -117,7 +121,6 @@ public class FileSendManager {
     public void giveUpdateToUser() {
     	if(sw.getSubsequentLFS() == (sw.getK()-1)) {
 			//TODO add name of file, maybe change this to some other way to track status
-//			System.out.println("Still working on sending the file! Sent 256 packets since last message");
 		}
     }
 }
