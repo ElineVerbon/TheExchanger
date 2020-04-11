@@ -6,11 +6,11 @@ import java.util.Map;
 
 import com.nedap.university.eline.exchanger.manager.FileSendManager.sendReason;
 
-public class SentPacketTracker {
+public class SentFilePacketTracker {
 	
 	private Map<Integer, DatagramPacket> sentNotAckedPackets;
 	
-	public SentPacketTracker() {
+	public SentFilePacketTracker() {
 		sentNotAckedPackets = new HashMap<>();
 	}
 	
