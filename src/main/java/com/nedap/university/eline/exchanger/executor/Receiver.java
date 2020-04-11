@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
-public abstract class AbstractReceiver {
+public class Receiver {
 	
 	private DatagramSocket socket;
 	
-	public AbstractReceiver(DatagramSocket socket) {
+	public Receiver(DatagramSocket socket) {
 		this.socket = socket;
 	}
 	
