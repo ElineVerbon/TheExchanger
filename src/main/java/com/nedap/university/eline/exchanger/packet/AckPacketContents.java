@@ -13,11 +13,23 @@ public class AckPacketContents {
 	public AckPacketContents(final DatagramPacket packet) {
 		final byte[] bytes = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
 		
-		lastPacket = ((bytes[0] &0xFF) == 1) ? true : false;
-		dAck = ((bytes[1] &0xFF) == 1) ? true : false;
+		if(bytes.length != ACK_PACKET_LENGTH) {
+			throw new IllegalArgumentException();
+		}
 		
-		final byte[] seqBytes = Arrays.copyOfRange(bytes, 2, ACK_PACKET_LENGTH);
-		seqNumber = SequenceNumberCalculator.getSeqNumFromBytes(seqBytes);
+		lastPacket = getBooleanFromByte(bytes[0] &0xFF);
+		dAck = getBooleanFromByte(bytes[1] &0xFF);
+		seqNumber = SequenceNumberCalculator.getSeqNumFromBytes(Arrays.copyOfRange(bytes, 2, ACK_PACKET_LENGTH));
+	}
+		
+	public boolean getBooleanFromByte(final int i) {
+		if (i == 0) {
+			return false;
+		} else if (i == 1) {
+			return true;
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 	
 	public boolean isAckOfLastPacket() {
