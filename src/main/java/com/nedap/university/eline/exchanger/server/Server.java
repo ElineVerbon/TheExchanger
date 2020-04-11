@@ -31,7 +31,6 @@ public class Server {
     }
     
     public DatagramPacket getChoice() {
-    	//TODO not sure how large to make the buffer
     	DatagramPacket response = null;
     	try {
 			response = new DatagramPacket(new byte[1], 1);
