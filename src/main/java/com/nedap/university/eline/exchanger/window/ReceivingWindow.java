@@ -48,4 +48,8 @@ public class ReceivingWindow extends AbstractWindow {
 			LAF = RWS + LFR;
 		}
 	}
+	
+	public boolean isInWindow(final int aSeqNum) {
+		return super.isInWindow(LFR, aSeqNum, "RWS");
+	}
 }
