@@ -1,6 +1,5 @@
 package com.nedap.university.eline.exchanger.executor;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.concurrent.Executors;
@@ -9,31 +8,20 @@ import java.util.concurrent.TimeUnit;
 
 import com.nedap.university.eline.exchanger.manager.FileSendManager.sendReason;
 
-public class FilePacketSender {
+public class FilePacketSender extends AbstractSender{
 	
-	private DatagramSocket socket;
-	private SentPacketTracker packetTracker;
+	private SentFilePacketTracker packetTracker;
 	
-	public FilePacketSender(final DatagramSocket socket, final SentPacketTracker packetTracker) {
-		this.socket = socket;
+	public FilePacketSender(final DatagramSocket socket, final SentFilePacketTracker packetTracker) {
+		super(socket);
 		this.packetTracker = packetTracker;
 	}
 	
-	public void sendPacket(final DatagramPacket packet, final sendReason reason, final int seqNumber) {
-    	try {
-			socket.send(packet);
-			setPacketTimer(seqNumber);
-			packetTracker.addPacket(seqNumber, packet);
-			if (reason == sendReason.PRIMARY) {
-				System.out.println("Sent packet with seqNumber " + seqNumber + " for the first time.");
-			} else if (reason == sendReason.DACK) {
-				System.out.println("Sent packet with seqNumber " + seqNumber + " again after receiving 3+ DAcks.");
-			} else if (reason == sendReason.TIMER) {
-				System.out.println("Sent packet with seqNumber " + seqNumber + " again because the timer expired.");
-			}
-		} catch (IOException e) {
-			System.out.println("Packet could not be sent, error message: " + e.getMessage());
-		}
+	public void sendFilePacket(final DatagramPacket packet, final sendReason reason, final int seqNumber) {
+		sendPacket(packet);
+		setPacketTimer(seqNumber);
+		packetTracker.addPacket(seqNumber, packet);
+		updateUser(reason, seqNumber);
     }
 	
 	public void setPacketTimer(final int seqNumber) {
@@ -58,8 +46,18 @@ public class FilePacketSender {
 	    	if(packetTracker.isAcked(seqNumber)) {
 	    		DatagramPacket packet = packetTracker.getPreviouslySentPacket(seqNumber);
 	    		packetTracker.removePacket(seqNumber);
-	    		sendPacket(packet, sendReason.TIMER, seqNumber);
+	    		sendFilePacket(packet, sendReason.TIMER, seqNumber);
 	    	}
     	}
+    }
+    
+    public void updateUser(final sendReason reason, final int seqNumber ) {
+    	if (reason == sendReason.PRIMARY) {
+			System.out.println("Sent packet with seqNumber " + seqNumber + " for the first time.");
+		} else if (reason == sendReason.DACK) {
+			System.out.println("Sent packet with seqNumber " + seqNumber + " again after receiving 3+ DAcks.");
+		} else if (reason == sendReason.TIMER) {
+			System.out.println("Sent packet with seqNumber " + seqNumber + " again because the timer expired.");
+		}
     }
 }
