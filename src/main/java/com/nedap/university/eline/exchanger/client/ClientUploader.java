@@ -10,7 +10,7 @@ import javax.swing.JFileChooser;
 
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
 
-public class ClientUploader extends AbstractClientExecutor {
+public class ClientUploader extends AbstractClientExecutor implements ClientUploaderInterface {
 
 	private ClientTUI clientTUI;
 	private int serverPort;
