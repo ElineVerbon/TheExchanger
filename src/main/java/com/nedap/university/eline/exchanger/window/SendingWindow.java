@@ -2,73 +2,73 @@ package com.nedap.university.eline.exchanger.window;
 
 public class SendingWindow extends AbstractWindow {
 	
-	private int LFS = -1; //LastFrameSent
-	private int LAR = -1; //LastAckknowledgementReceived
-	private boolean ackRec = false;
-	private int dACKs = 0;
+	private int lastFrameSent = -1; //LastFrameSent
+	private int lastAckknowledgementReceived = -1; //LastAckknowledgementReceived
+	private boolean ackReceived = false;
+	private int duplicateACKs = 0;
 	private int packetNumber = -1;
 	
-	public int getSWS() {
-		return SWS;
+	public int getSendingWindowSize() {
+		return SENDING_WINDOW_SIZE;
 	}
 
-	public void incrementLFS() {
+	public void incrementLastFrameSent() {
 		synchronized (this) {
-			this.LFS = (LFS + 1) % K;
+			this.lastFrameSent = (lastFrameSent + 1) % SEQUENCE_NUMBER_SPACE;
 		}
     }
 	
-	public int getLFS() {
+	public int getLastFrameSent() {
 		synchronized (this) {
-			return LFS;
+			return lastFrameSent;
 		}
 	}
 	
 	public int getSubsequentLFS() {
 		synchronized (this) {
-			return ((LFS + 1) % K);
+			return ((lastFrameSent + 1) % SEQUENCE_NUMBER_SPACE);
 		}
 	}
 	
-	public int getLAR() {
+	public int getLastAckknowledgementReceived() {
 		synchronized (this) {
-			return LAR;
+			return lastAckknowledgementReceived;
 		}
 	}
 	
-	public void setLAR(final int aNumber) {
+	public void setLastAckknowledgementReceived(final int aNumber) {
 		synchronized (this) {
-			LAR = aNumber;
+			lastAckknowledgementReceived = aNumber;
 		}
 	}
 	
-	public boolean getAckRec() {
+	public boolean getAckReceived() {
 		synchronized (this) {
-			return ackRec;
+			return ackReceived;
 		}
 	}
 	
-	public void setAckRec(final boolean aBoolean) {
+	public void setAckReceived(final boolean aBoolean) {
 		synchronized (this) {
-			ackRec = aBoolean;
+			ackReceived = aBoolean;
 		}
 	}
 	
-	public void incrementDACKs() {
+	public void incrementDuplicateACKs() {
 		synchronized (this) {
-			dACKs++;
+			duplicateACKs++;
 		}
 	}
 	
-	public void setDACKsToZero() {
+	public void setDuplicateACKsToZero() {
 		synchronized (this) {
-			dACKs = 0;
+			duplicateACKs = 0;
 		}
 	}
 	
-	public int getDACKs() {
+	public int getDuplicateACKs() {
 		synchronized (this) {
-			return dACKs;
+			return duplicateACKs;
 		}
 	}
 	
@@ -85,6 +85,6 @@ public class SendingWindow extends AbstractWindow {
 	}
 	
 	public boolean isInWindow(final int aSeqNum) {
-		return super.isInWindow(LAR, aSeqNum, "SWS");
+		return super.isInWindow(lastAckknowledgementReceived, aSeqNum, "SWS");
 	}
 }

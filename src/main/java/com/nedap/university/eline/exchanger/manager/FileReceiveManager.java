@@ -13,7 +13,7 @@ import com.nedap.university.eline.exchanger.window.ReceivingWindow;
 
 public class FileReceiveManager {
 	
-	private ReceivingWindow rws;
+	private ReceivingWindow receivingWindow;
 	private ReceivedFilePacketTracker packetTracker;
 	private Receiver receiver;
 	private AckPacketMaker ackMaker;
@@ -26,7 +26,7 @@ public class FileReceiveManager {
 	private boolean duplicateAck = false;
 	
 	public FileReceiveManager(final DatagramSocket socket) {
-		this.rws= new ReceivingWindow();
+		this.receivingWindow= new ReceivingWindow();
 		this.packetTracker = new ReceivedFilePacketTracker();
 		receiver = new Receiver(socket);
 		this.ackSender = new AckSender(socket);
@@ -51,7 +51,7 @@ public class FileReceiveManager {
 	
 	public void processPacket(final FilePacketContents packet) {
 		
-		if(!rws.isInWindow(packet.getSeqNum())) {
+		if(!receivingWindow.isInWindow(packet.getSeqNum())) {
 			sendDuplicateAck();
 			return;
 		}
@@ -65,7 +65,7 @@ public class FileReceiveManager {
 			recLastPacket = true;
 		}
 
-		if (packet.getSeqNum() != rws.getSubsequentLFR()) {
+		if (packet.getSeqNum() != receivingWindow.getSubsequentLargestConsecutivePacketReceived()) {
 			sendDuplicateAck();
 		} else {
 			setLFRToHighestConsAck(packetNumber);
@@ -86,7 +86,7 @@ public class FileReceiveManager {
 			if (seqNumber > lastSeenSeqNumber) {
 				packetNumber = lastSeenPacketNumber + (seqNumber - lastSeenSeqNumber);
 			} else {
-				packetNumber = lastSeenPacketNumber + (rws.getK() - lastSeenSeqNumber + seqNumber);
+				packetNumber = lastSeenPacketNumber + (receivingWindow.getSequenceNumberSpace() - lastSeenSeqNumber + seqNumber);
 			}
 			
 			return packetNumber;
@@ -102,17 +102,17 @@ public class FileReceiveManager {
 	public void sendAck() {
 //		System.out.println("sending an ack with seqnum " + rws.getLFR());
 		recAllPackets = recLastPacket && packetTracker.allPacketsReceived();
-		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, rws.getLFR());
+		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, receivingWindow.getLargestConsecutivePacketReceived());
 		ackSender.sendPacket(ack);
 	}
 	
 	public void setLFRToHighestConsAck(final int packetNumber) {
 		if(packetNumber == 0) {
-			rws.setLFR(0);
+			receivingWindow.setLargestConsecutivePacketReceived(0);
 		} else {
-			final int highestConPacketAccepted = packetTracker.getHighestConsAccepFilePacket(lastAckedSeqNumPacNumPair[1], rws.getRWS());
-			rws.setLFR(highestConPacketAccepted%rws.getK());
-			rws.setLAF();
+			final int highestConPacketAccepted = packetTracker.getHighestConsAccepFilePacket(lastAckedSeqNumPacNumPair[1], receivingWindow.getReceivingWindowSize());
+			receivingWindow.setLargestConsecutivePacketReceived(highestConPacketAccepted%receivingWindow.getSequenceNumberSpace());
+			receivingWindow.setLargestAcceptablePacket();
 		}
 	}
 	

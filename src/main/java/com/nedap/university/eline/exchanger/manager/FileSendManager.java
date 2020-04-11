@@ -14,7 +14,7 @@ import com.nedap.university.eline.exchanger.window.SendingWindow;
 
 public class FileSendManager {
     
-	private SendingWindow sw;
+	private SendingWindow sendingWindow;
 	private SentFilePacketTracker packetTracker;
 	private FilePacketMaker filePacketMaker;
 	private FilePacketSender filePacketSender;
@@ -24,7 +24,7 @@ public class FileSendManager {
 	public enum sendReason { PRIMARY, DACK, TIMER }
 	
     public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket) {
-		this.sw= new SendingWindow();
+		this.sendingWindow= new SendingWindow();
 		this.packetTracker = new SentFilePacketTracker();
 		this.filePacketMaker = new FilePacketMaker(bytes, destAddress, destPort);
 		this.filePacketSender = new FilePacketSender(socket, packetTracker);
@@ -46,19 +46,19 @@ public class FileSendManager {
 		while(!noMorePackets) {
 			boolean inWindow = false;
 			
-			synchronized(sw) {
+			synchronized(sendingWindow) {
 				giveUpdateToUser();
-				inWindow = sw.isInWindow(sw.getLAR(), sw.getSubsequentLFS(), "SWS");
+				inWindow = sendingWindow.isInWindow(sendingWindow.getLastAckknowledgementReceived(), sendingWindow.getSubsequentLFS(), "SWS");
 	
 				if (inWindow) {
-					sw.incrementLFS();
-					sw.incrementPacketNumber();
+					sendingWindow.incrementLastFrameSent();
+					sendingWindow.incrementPacketNumber();
 					
-					Optional<DatagramPacket> packet = filePacketMaker.makeDataPacket(sw.getPacketNumber(), sw.getLFS());
+					Optional<DatagramPacket> packet = filePacketMaker.makeDataPacket(sendingWindow.getPacketNumber(), sendingWindow.getLastFrameSent());
 					if (packet == null) {
 						noMorePackets = true;
 					} else {
-						filePacketSender.sendFilePacket(packet.get(), sendReason.PRIMARY, sw.getLFS());
+						filePacketSender.sendFilePacket(packet.get(), sendReason.PRIMARY, sendingWindow.getLastFrameSent());
 					}
 				} 
 			}
@@ -92,34 +92,34 @@ public class FileSendManager {
     public void processAck(final int seqNumber) {
     	System.out.print("Ack with seqNumber " + seqNumber + " received. ");
     	
-    	synchronized(sw) {
-    		System.out.println("Current LAR is " + sw.getLAR());
-			if (seqNumber == (sw.getLAR())) {
+    	synchronized(sendingWindow) {
+    		System.out.println("Current LAR is " + sendingWindow.getLastAckknowledgementReceived());
+			if (seqNumber == (sendingWindow.getLastAckknowledgementReceived())) {
 				processDuplicateAck(seqNumber);
-			} else if (sw.isInWindow(seqNumber)){
+			} else if (sendingWindow.isInWindow(seqNumber)){
 				processNewAck(seqNumber);
 			} 
-			sw.setAckRec(true);
+			sendingWindow.setAckReceived(true);
 		}
     }
     
     public void processNewAck(final int seqNumber) {
-    	sw.setDACKsToZero();
-    	packetTracker.updateSentPacketsList(seqNumber, sw.getLAR(), sw.getK());
-		sw.setLAR(seqNumber);
+    	sendingWindow.setDuplicateACKsToZero();
+    	packetTracker.updateSentPacketsList(seqNumber, sendingWindow.getLastAckknowledgementReceived(), sendingWindow.getSequenceNumberSpace());
+		sendingWindow.setLastAckknowledgementReceived(seqNumber);
     }
 
     
     public void processDuplicateAck(final int seqNumber) {
-    	sw.incrementDACKs();
-		if (sw.getDACKs() == 3) {
-			sw.setDACKsToZero();
+    	sendingWindow.incrementDuplicateACKs();
+		if (sendingWindow.getDuplicateACKs() == 3) {
+			sendingWindow.setDuplicateACKsToZero();
 			filePacketSender.ifNotAckedSendAgain(seqNumber);
 		}
     }
     
     public void giveUpdateToUser() {
-    	if(sw.getSubsequentLFS() == (sw.getK()-1)) {
+    	if(sendingWindow.getSubsequentLFS() == (sendingWindow.getSequenceNumberSpace()-1)) {
 			//TODO add name of file, maybe change this to some other way to track status
 		}
     }

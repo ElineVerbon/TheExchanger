@@ -2,54 +2,55 @@ package com.nedap.university.eline.exchanger.window;
 
 public class ReceivingWindow extends AbstractWindow {
 	
-	private int LAF; //LargestAcceptableFrame
-	private int LFR = -1; //LastFrameReceived = last consecutive frame
+	private int largestAcceptablePacket;
+	private int largestConsecutivePacketReceived = -1; //LastFrameReceived = last consecutive frame
 	
 	public ReceivingWindow() {
-		setLAF();
+		setLargestAcceptablePacket();
 	}
 	
-	public int getRWS() {
-		return RWS;
+	public int getReceivingWindowSize() {
+		return RECEIVING_WINDOW_SIZE;
 	}
 	
-	public void incrementLFR() {
+	public void incrementLargestConsecutivePacketReceived() {
 		synchronized (this) {
-			this.LFR = (LFR + 1) % K;
+			this.largestConsecutivePacketReceived = (largestConsecutivePacketReceived + 1) % SEQUENCE_NUMBER_SPACE;
 		}
     }
 	
-	public int getLFR() {
+	public int getLargestConsecutivePacketReceived() {
 		synchronized (this) {
-			return LFR;
+			return largestConsecutivePacketReceived;
 		}
 	}
 	
-	public int getSubsequentLFR() {
+	public int getSubsequentLargestConsecutivePacketReceived() {
 		synchronized (this) {
-			return ((LFR + 1) % K);
+			return ((largestConsecutivePacketReceived + 1) % SEQUENCE_NUMBER_SPACE);
 		}
 	}
 	
-	public void setLFR(final int newLFR) {
+	public void setLargestConsecutivePacketReceived(final int newlargestConsecutivePacket) {
+		//TODO throw error when not in sequenceNumberSpace!
 		synchronized (this) {
-			LFR = newLFR;
+			largestConsecutivePacketReceived = newlargestConsecutivePacket;
 		}
 	}
 	
-	public int getLAF() {
+	public int getLargestAcceptablePacket() {
 		synchronized (this) {
-			return LAF;
+			return largestAcceptablePacket;
 		}
 	}
 	
-	public void setLAF() {
+	public void setLargestAcceptablePacket() {
 		synchronized (this) {
-			LAF = RWS + LFR;
+			largestAcceptablePacket = RECEIVING_WINDOW_SIZE + largestConsecutivePacketReceived;
 		}
 	}
 	
 	public boolean isInWindow(final int aSeqNum) {
-		return super.isInWindow(LFR, aSeqNum, "RWS");
+		return super.isInWindow(largestConsecutivePacketReceived, aSeqNum, "RWS");
 	}
 }
