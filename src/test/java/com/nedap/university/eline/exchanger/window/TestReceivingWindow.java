@@ -34,8 +34,6 @@ public class TestReceivingWindow {
 		assertEquals(211, window.getSubsequentLargestConsecutivePacketReceived());
 	}
 	
-	//TODO test exception thrown when int giving out of range
-	
 	@Test
 	public void testIsInWindow() {
 		ReceivingWindow window = new ReceivingWindow();

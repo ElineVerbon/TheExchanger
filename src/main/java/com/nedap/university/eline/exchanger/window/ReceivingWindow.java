@@ -4,6 +4,7 @@ public class ReceivingWindow extends AbstractWindow {
 	
 	private int largestConsecutivePacketReceived = -1; //LastFrameReceived = last consecutive frame
 	
+	
 	public int getReceivingWindowSize() {
 		return RECEIVING_WINDOW_SIZE;
 	}
@@ -29,6 +30,9 @@ public class ReceivingWindow extends AbstractWindow {
 	public void setLargestConsecutivePacketReceived(final int newlargestConsecutivePacket) {
 		//TODO throw error when not in sequenceNumberSpace!
 		synchronized (this) {
+			if(newlargestConsecutivePacket < 0 || newlargestConsecutivePacket >= SEQUENCE_NUMBER_SPACE) {
+				throw new IllegalArgumentException();
+			}
 			largestConsecutivePacketReceived = newlargestConsecutivePacket;
 		}
 	}
