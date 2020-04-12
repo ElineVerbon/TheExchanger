@@ -4,7 +4,6 @@ public class SendingWindow extends AbstractWindow {
 	
 	private int lastFrameSent = -1; //LastFrameSent
 	private int lastAckknowledgementReceived = -1; //LastAckknowledgementReceived
-	private boolean ackReceived = false;
 	private int duplicateACKs = 0;
 	private int packetNumber = -1;
 	
@@ -42,17 +41,6 @@ public class SendingWindow extends AbstractWindow {
 		}
 	}
 	
-	public boolean getAckReceived() {
-		synchronized (this) {
-			return ackReceived;
-		}
-	}
-	
-	public void setAckReceived(final boolean aBoolean) {
-		synchronized (this) {
-			ackReceived = aBoolean;
-		}
-	}
 	
 	public void incrementDuplicateACKs() {
 		synchronized (this) {

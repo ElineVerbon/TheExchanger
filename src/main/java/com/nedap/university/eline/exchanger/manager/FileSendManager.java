@@ -98,7 +98,6 @@ public class FileSendManager {
 				processDuplicateAck(seqNumber);
 			} else if (sendingWindow.isInWindow(seqNumber)){
 				processNewAck(seqNumber);
-				sendingWindow.setAckReceived(true);
 			} 
 			
 		}
