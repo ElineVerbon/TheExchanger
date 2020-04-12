@@ -45,8 +45,19 @@ public class FileReceiveManager {
 			firstPacket = false;
 		}
 		
+		waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
+		
 		System.out.println("Received all the packets!");
 		return collectAllBytes();
+	}
+	
+	public void waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
+		System.out.println("waiting");
+		final DatagramPacket possiblePacket = receiver.receivePacketWithTimeOut(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
+		if(possiblePacket != null) {
+			sendDuplicateAck();
+			waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
+		}
 	}
 	
 	public void processPacket(final FilePacketContents packet) {
@@ -64,7 +75,7 @@ public class FileReceiveManager {
 		if(packet.isLastPacket()) {
 			recLastPacket = true;
 		}
-
+		
 		if (packet.getSeqNum() != receivingWindow.getSubsequentLargestConsecutivePacketReceived()) {
 			sendDuplicateAck();
 		} else {
@@ -86,7 +97,7 @@ public class FileReceiveManager {
 			if (seqNumber > lastSeenSeqNumber) {
 				packetNumber = lastSeenPacketNumber + (seqNumber - lastSeenSeqNumber);
 			} else {
-				packetNumber = lastSeenPacketNumber + (receivingWindow.getSequenceNumberSpace() - lastSeenSeqNumber + seqNumber);
+				packetNumber = lastSeenPacketNumber + (ReceivingWindow.getSequenceNumberSpace() - lastSeenSeqNumber + seqNumber);
 			}
 			
 			return packetNumber;

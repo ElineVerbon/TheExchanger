@@ -11,6 +11,7 @@ import com.nedap.university.eline.exchanger.manager.FileSendManager.sendReason;
 public class FilePacketSender extends AbstractSender{
 	
 	private SentFilePacketTracker packetTracker;
+	public static final int timeOutTime = 2;
 	
 	public FilePacketSender(final DatagramSocket socket, final SentFilePacketTracker packetTracker) {
 		super(socket);
@@ -36,8 +37,7 @@ public class FilePacketSender extends AbstractSender{
             }
         };
      
-        int delay = 5;
-        scheduler.schedule(task, delay, TimeUnit.SECONDS);
+        scheduler.schedule(task, timeOutTime, TimeUnit.SECONDS);
         scheduler.shutdown();
     }
 	
