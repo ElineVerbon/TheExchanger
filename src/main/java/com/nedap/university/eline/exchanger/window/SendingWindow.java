@@ -37,6 +37,9 @@ public class SendingWindow extends AbstractWindow {
 	
 	public void setLastAckknowledgementReceived(final int aNumber) {
 		synchronized (this) {
+			if(aNumber < 0 || aNumber >= SEQUENCE_NUMBER_SPACE) {
+				throw new IllegalArgumentException();
+			}
 			lastAckknowledgementReceived = aNumber;
 		}
 	}
