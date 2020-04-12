@@ -24,7 +24,7 @@ public class SendingWindow extends AbstractWindow {
 		}
 	}
 	
-	public int getSubsequentLFS() {
+	public int getSeqNumOneGreaterThanLastSent() {
 		synchronized (this) {
 			return ((lastFrameSent + 1) % SEQUENCE_NUMBER_SPACE);
 		}

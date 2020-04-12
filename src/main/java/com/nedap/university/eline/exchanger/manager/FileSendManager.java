@@ -48,7 +48,7 @@ public class FileSendManager {
 			
 			synchronized(sendingWindow) {
 				giveUpdateToUser();
-				inWindow = sendingWindow.isInWindow(sendingWindow.getLastAckknowledgementReceived(), sendingWindow.getSubsequentLFS(), "SWS");
+				inWindow = sendingWindow.isInWindow(sendingWindow.getSeqNumOneGreaterThanLastSent());
 	
 				if (inWindow) {
 					sendingWindow.incrementLastFrameSent();
@@ -98,14 +98,15 @@ public class FileSendManager {
 				processDuplicateAck(seqNumber);
 			} else if (sendingWindow.isInWindow(seqNumber)){
 				processNewAck(seqNumber);
+				sendingWindow.setAckReceived(true);
 			} 
-			sendingWindow.setAckReceived(true);
+			
 		}
     }
     
     public void processNewAck(final int seqNumber) {
     	sendingWindow.setDuplicateACKsToZero();
-    	packetTracker.updateSentPacketsList(seqNumber, sendingWindow.getLastAckknowledgementReceived(), sendingWindow.getSequenceNumberSpace());
+    	packetTracker.updateSentPacketsList(seqNumber, sendingWindow.getLastAckknowledgementReceived(), SendingWindow.getSequenceNumberSpace());
 		sendingWindow.setLastAckknowledgementReceived(seqNumber);
     }
 
@@ -119,7 +120,7 @@ public class FileSendManager {
     }
     
     public void giveUpdateToUser() {
-    	if(sendingWindow.getSubsequentLFS() == (sendingWindow.getSequenceNumberSpace()-1)) {
+    	if(sendingWindow.getSeqNumOneGreaterThanLastSent() == (SendingWindow.getSequenceNumberSpace()-1)) {
 			//TODO add name of file, maybe change this to some other way to track status
 		}
     }
