@@ -13,25 +13,10 @@ public class TestAckPacketContents {
 	
 	@Test
 	public void testFalsePacket() throws UnknownHostException {
-		byte[] bytes = new byte[] { (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, 
-				(byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000 };
-		FilePacketMaker wrongMaker = new FilePacketMaker(bytes, InetAddress.getLocalHost(), 8080);
-		DatagramPacket packet = wrongMaker.makeDataPacket(0, 0).get();
-		
+		DatagramPacket packet = new DatagramPacket(new byte[] { (byte) 0b00000000, (byte) 0b00000000 }, 0);
 		assertThrows(IllegalArgumentException.class, () -> new AckPacketContents(packet));
 	}
 
-	@Test
-	public void testGetBooleanFromByte() throws UnknownHostException {
-		AckPacketMaker maker = new AckPacketMaker(InetAddress.getLocalHost(), 8080);
-		DatagramPacket packet = maker.makePacket(true, true, 10);
-		AckPacketContents contents = new AckPacketContents(packet);
-		
-		assertEquals(true, contents.getBooleanFromByte(1));
-		assertEquals(false, contents.getBooleanFromByte(0));
-		assertThrows(IllegalArgumentException.class, () -> contents.getBooleanFromByte(2));
-	}
-	
 	@Test
 	public void testMakePacketAndGetContentInfo() throws UnknownHostException {
 		AckPacketMaker maker = new AckPacketMaker(InetAddress.getLocalHost(), 8080);

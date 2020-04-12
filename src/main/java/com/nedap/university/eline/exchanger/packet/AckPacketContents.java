@@ -3,7 +3,7 @@ package com.nedap.university.eline.exchanger.packet;
 import java.net.DatagramPacket;
 import java.util.Arrays;
 
-public class AckPacketContents {
+public class AckPacketContents extends AbstractPacketContents{
 
 	private static int ACK_PACKET_LENGTH = 2 + SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH;
 	private boolean lastPacket;
@@ -17,19 +17,9 @@ public class AckPacketContents {
 			throw new IllegalArgumentException();
 		}
 		
-		lastPacket = getBooleanFromByte(bytes[0] &0xFF);
-		dAck = getBooleanFromByte(bytes[1] &0xFF);
+		lastPacket = getBooleanFromInt(bytes[0] &0xFF);
+		dAck = getBooleanFromInt(bytes[1] &0xFF);
 		seqNumber = SequenceNumberCalculator.getSeqNumFromBytes(Arrays.copyOfRange(bytes, 2, ACK_PACKET_LENGTH));
-	}
-		
-	public boolean getBooleanFromByte(final int i) {
-		if (i == 0) {
-			return false;
-		} else if (i == 1) {
-			return true;
-		} else {
-			throw new IllegalArgumentException();
-		}
 	}
 	
 	public boolean isAckOfLastPacket() {
