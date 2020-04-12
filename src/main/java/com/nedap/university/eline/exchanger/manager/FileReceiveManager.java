@@ -97,7 +97,7 @@ public class FileReceiveManager {
 			if (seqNumber > lastSeenSeqNumber) {
 				packetNumber = lastSeenPacketNumber + (seqNumber - lastSeenSeqNumber);
 			} else {
-				packetNumber = lastSeenPacketNumber + (ReceivingWindow.getSequenceNumberSpace() - lastSeenSeqNumber + seqNumber);
+				packetNumber = lastSeenPacketNumber + (ReceivingWindow.SEQUENCE_NUMBER_SPACE - lastSeenSeqNumber + seqNumber);
 			}
 			
 			return packetNumber;
@@ -122,7 +122,7 @@ public class FileReceiveManager {
 			receivingWindow.setLargestConsecutivePacketReceived(0);
 		} else {
 			final int highestConPacketAccepted = packetTracker.getHighestConsAccepFilePacket(lastAckedSeqNumPacNumPair[1], receivingWindow.getReceivingWindowSize());
-			receivingWindow.setLargestConsecutivePacketReceived(highestConPacketAccepted%receivingWindow.getSequenceNumberSpace());
+			receivingWindow.setLargestConsecutivePacketReceived(highestConPacketAccepted%ReceivingWindow.SEQUENCE_NUMBER_SPACE);
 		}
 	}
 	

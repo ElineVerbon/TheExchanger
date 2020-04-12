@@ -105,7 +105,7 @@ public class FileSendManager {
     
     public void processNewAck(final int seqNumber) {
     	sendingWindow.setDuplicateACKsToZero();
-    	packetTracker.updateSentPacketsList(seqNumber, sendingWindow.getLastAckknowledgementReceived(), SendingWindow.getSequenceNumberSpace());
+    	packetTracker.updateSentPacketsList(seqNumber, sendingWindow.getLastAckknowledgementReceived(), SendingWindow.SEQUENCE_NUMBER_SPACE);
 		sendingWindow.setLastAckknowledgementReceived(seqNumber);
     }
 
@@ -119,7 +119,7 @@ public class FileSendManager {
     }
     
     public void giveUpdateToUser() {
-    	if(sendingWindow.getSeqNumOneGreaterThanLastSent() == (SendingWindow.getSequenceNumberSpace()-1)) {
+    	if(sendingWindow.getSeqNumOneGreaterThanLastSent() == (SendingWindow.SEQUENCE_NUMBER_SPACE-1)) {
 			//TODO add name of file, maybe change this to some other way to track status
 		}
     }
