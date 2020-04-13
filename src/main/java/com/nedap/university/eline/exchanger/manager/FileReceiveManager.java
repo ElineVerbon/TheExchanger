@@ -112,7 +112,7 @@ public class FileReceiveManager {
 	
 	public void sendAck() {
 //		System.out.println("sending an ack with seqnum " + rws.getLFR());
-		recAllPackets = recLastPacket && packetTracker.allPacketsReceived();
+		recAllPackets = recLastPacket && packetTracker.allPacketsUpToMostRecentlyArrivedPacketReceived();
 		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, receivingWindow.getLargestConsecutivePacketReceived());
 		ackSender.sendPacket(ack);
 	}
@@ -121,7 +121,7 @@ public class FileReceiveManager {
 		if(packetNumber == 0) {
 			receivingWindow.setLargestConsecutivePacketReceived(0);
 		} else {
-			final int highestConPacketAccepted = packetTracker.getHighestConsAccepFilePacket(lastAckedSeqNumPacNumPair[1], receivingWindow.getReceivingWindowSize());
+			final int highestConPacketAccepted = packetTracker.getHighestConsAccepFilePacket();
 			receivingWindow.setLargestConsecutivePacketReceived(highestConPacketAccepted%ReceivingWindow.SEQUENCE_NUMBER_SPACE);
 		}
 	}

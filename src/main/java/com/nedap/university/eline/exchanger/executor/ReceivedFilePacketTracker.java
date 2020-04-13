@@ -12,18 +12,24 @@ public class ReceivedFilePacketTracker {
 	}
 	
 	public void savePacket(final byte[] dataBytes, final int packetNumber) {
-		if(!receivedPackets.containsKey(packetNumber)) {
+		
+		if (packetNumber < 0) {
+			throw new IllegalArgumentException("PacketNumber must be higher than zero.");
+		}
+		
+		if (!receivedPackets.containsKey(packetNumber)) {
 			receivedPackets.put(packetNumber, dataBytes);
+		} else {
+			throw new IllegalArgumentException("This packetNumber has already been entered.");
 		}
 	}
 	
-	public boolean allPacketsReceived() {
+	public boolean allPacketsUpToMostRecentlyArrivedPacketReceived() {
 		boolean recAllPackets = true;
 		int packetNumber = 0;
-		for(Map.Entry<Integer, byte[]> entry : receivedPackets.entrySet()) {
+		for (Map.Entry<Integer, byte[]> entry : receivedPackets.entrySet()) {
 			if (entry.getKey() != packetNumber) {
-				recAllPackets = false;
-				break;
+				return false;
 			}
 			packetNumber++;
 		}
@@ -31,19 +37,24 @@ public class ReceivedFilePacketTracker {
 	}
 	
 	public boolean packetAlreadyReceived(final int packetNumber) {
+		
+		if (packetNumber < 0) {
+			throw new IllegalArgumentException("PacketNumber must be higher than zero.");
+		}
+		
 		return receivedPackets.containsKey(packetNumber);
 	}
 	
-	public int getHighestConsAccepFilePacket(final int lastAckedPacketNumber, final int RWS) {
-		int highestAcceptedFile = lastAckedPacketNumber;
-		for(int i = lastAckedPacketNumber + 1; i <= (lastAckedPacketNumber + RWS); i++) {
-			if(packetAlreadyReceived(i)) {
-				highestAcceptedFile = i;
+	public int getHighestConsAccepFilePacket() {
+		int largestAcceptedPackedNumber = -1;
+		for (int i = 0; i < receivedPackets.size(); i++) {
+			if (packetAlreadyReceived(i)) {
+				largestAcceptedPackedNumber = i;
 			} else {
-				return highestAcceptedFile;
+				return largestAcceptedPackedNumber;
 			}
 		}
-		return highestAcceptedFile;
+		return largestAcceptedPackedNumber;
 	}
 	
 	public Map<Integer, byte[]> getAllReceivedPackets() {
