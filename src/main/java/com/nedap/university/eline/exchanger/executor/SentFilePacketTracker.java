@@ -19,49 +19,70 @@ public class SentFilePacketTracker {
 			return sentNotAckedPackets;
 		}
 	}
-	
-	public boolean isAcked(final int expiredSeqNumber) {
-		synchronized(this ) {
-			return sentNotAckedPackets.containsKey(expiredSeqNumber);
-		}
-	}
-	
-    public void removePacket(final int seqNumber) {
-    	synchronized(this ) {
-    		sentNotAckedPackets.remove(seqNumber);
-    	}
-    }
     
     public void addPacket(final int seqNumber, DatagramPacket packet) {
+    	if (seqNumber < 0) {
+    		throw new IllegalArgumentException("SeqNumber cannot be less than zero.");
+    	}
+    	
     	synchronized(this) {
+    		if (sentNotAckedPackets.containsKey(seqNumber)) {
+    			System.out.println("Warning: overwriting existing seqNumber.");
+    		}
     		sentNotAckedPackets.put(seqNumber, packet);
     	}
     }
     
     public DatagramPacket getPreviouslySentPacket(final int seqNumber) {
     	synchronized(this ) {
-    		return sentNotAckedPackets.get(seqNumber);
+    		if(sentNotAckedPackets.containsKey(seqNumber)) {
+    			return sentNotAckedPackets.get(seqNumber);
+    		} else {
+    			throw new IllegalArgumentException("Packet could not be found.");
+    		}
     	}
 	}
+    
+    public void removePacket(final int seqNumber) {
+    	if (seqNumber < 0) {
+    		throw new IllegalArgumentException("SeqNumber cannot be less than zero.");
+    	}
+    	
+    	synchronized(this ) {
+    		if (sentNotAckedPackets.containsKey(seqNumber)) {
+    			sentNotAckedPackets.remove(seqNumber);
+    		} else {
+    			throw new IllegalArgumentException("SeqNumber cannot be removed as it is not among saved seqNumbers.");
+    		}
+    		
+    	}
+    }
+    
+    public boolean hasSentPacketBeenAcked(final int expiredSeqNumber) {
+		synchronized(this ) {
+			return (!sentNotAckedPackets.containsKey(expiredSeqNumber));
+		}
+	}
 	
-    public void updateSentPacketsList(final int ackedSeqNum, final int LAR, final int K) {
+    public void updateSentPacketsList(final int ackedSeqNum, 
+    		final int previousLastAckknowledgementReceived, final int SeqNumRange) {
     	synchronized(this) {
-	    	if (ackedSeqNum > LAR) {
-		    	for (int i = LAR + 1; i <= ackedSeqNum; i++) {
-		    		removePacketWhenPresent(i);
+	    	if (ackedSeqNum > previousLastAckknowledgementReceived) {
+		    	for (int i = previousLastAckknowledgementReceived + 1; i <= ackedSeqNum; i++) {
+		    		removePacketIfPresent(i);
 		    	}
 	    	} else {
-	    		for (int i = LAR + 1; i <= (K + 1); i++) {
-	    			removePacketWhenPresent(i);
+	    		for (int i = previousLastAckknowledgementReceived + 1; i <= (SeqNumRange + 1); i++) {
+	    			removePacketIfPresent(i);
 		    	}
 	    		for (int i = 0; i <= ackedSeqNum; i++) {
-	    			removePacketWhenPresent(i);
+	    			removePacketIfPresent(i);
 	    		}
 	    	}
     	}
     }
     
-    public void removePacketWhenPresent(final int i) {
+    public void removePacketIfPresent(final int i) {
     	if (sentNotAckedPackets.containsKey(i)) {
 			removePacket(i);
 		}

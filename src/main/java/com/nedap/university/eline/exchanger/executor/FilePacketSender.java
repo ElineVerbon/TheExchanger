@@ -31,9 +31,7 @@ public class FilePacketSender extends AbstractSender{
      
         Runnable task = new Runnable() {
             public void run() {
-            	synchronized(packetTracker) {
-            		ifNotAckedSendAgain(seqNumber);
-            	}
+            	ifNotAckedSendAgain(seqNumber);
             }
         };
      
@@ -43,7 +41,7 @@ public class FilePacketSender extends AbstractSender{
 	
     public void ifNotAckedSendAgain(final int seqNumber) {
     	synchronized(packetTracker) {
-	    	if(packetTracker.isAcked(seqNumber)) {
+	    	if (!packetTracker.hasSentPacketBeenAcked(seqNumber)) {
 	    		DatagramPacket packet = packetTracker.getPreviouslySentPacket(seqNumber);
 	    		packetTracker.removePacket(seqNumber);
 	    		sendFilePacket(packet, sendReason.TIMER, seqNumber);
