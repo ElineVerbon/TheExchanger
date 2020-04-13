@@ -1,5 +1,10 @@
 package com.nedap.university.eline.exchanger.manager;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.Map;
@@ -24,15 +29,17 @@ public class FileReceiveManager {
 	public boolean recAllPackets = false;
 	private boolean recLastPacket = false;
 	private boolean duplicateAck = false;
+	private String absoluteFilePath;
 	
-	public FileReceiveManager(final DatagramSocket socket) {
+	public FileReceiveManager(final DatagramSocket socket, final String absoluteFilePath) {
 		this.receivingWindow= new ReceivingWindow();
 		this.packetTracker = new ReceivedFilePacketTracker();
 		receiver = new Receiver(socket);
 		this.ackSender = new AckSender(socket);
+		this.absoluteFilePath = absoluteFilePath;
     }
 	
-	public byte[] receiveFile() {
+	public void receiveFile() {
 		
 		System.out.println("Receiving a file...");
 		
@@ -48,7 +55,8 @@ public class FileReceiveManager {
 		waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
 		
 		System.out.println("Received all the packets!");
-		return collectAllBytes();
+		
+		saveFile();
 	}
 	
 	public void waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
@@ -111,7 +119,7 @@ public class FileReceiveManager {
 	}
 	
 	public void sendAck() {
-		System.out.println("sending an ack with seqnum " + receivingWindow.getLargestConsecutivePacketReceived());
+//		System.out.println("sending an ack with seqnum " + receivingWindow.getLargestConsecutivePacketReceived());
 		recAllPackets = recLastPacket && packetTracker.allPacketsUpToMostRecentlyArrivedPacketReceived();
 		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, receivingWindow.getLargestConsecutivePacketReceived());
 		ackSender.sendPacket(ack);
@@ -126,21 +134,31 @@ public class FileReceiveManager {
 		}
 	}
 	
-	public byte[] collectAllBytes() {
-		byte[] allBytes = {};
+	public void saveFile() {
 		
-		System.out.println("Collecting all bytes, please be patient!");
+		File file;
+    	
+        try {
+        	file = new File(absoluteFilePath);
+			if(file.createNewFile()){
+			    System.out.println(absoluteFilePath+" File Created in " + file.getAbsolutePath());
+			} else {
+				System.out.println("File already exists, overwriting it!");
+			}
+			RandomAccessFile randomAccessFile = new RandomAccessFile(absoluteFilePath, "rw");
 		
-		for(Map.Entry<Integer, byte[]> entry : packetTracker.getAllReceivedPackets().entrySet()) {
-			byte[] toBeAddedBytes = entry.getValue();
-			byte[] newAllBytes = new byte[allBytes.length + toBeAddedBytes.length];
-			System.arraycopy(allBytes, 0, newAllBytes, 0, allBytes.length);
-			System.arraycopy(toBeAddedBytes, 0, newAllBytes, allBytes.length, toBeAddedBytes.length);
-			allBytes = newAllBytes;
-			//TODO: make into something like below
-			//receivedPackets.entrySet().stream().map(element -> element.getValue()).collect(collector)
+			for(Map.Entry<Integer, byte[]> entry : packetTracker.getAllReceivedPackets().entrySet()) {
+				randomAccessFile.write(entry.getValue());
+				//TODO: make into something like below
+				//receivedPackets.entrySet().stream().map(element -> element.getValue()).collect(collector)
+			}
+			
+			randomAccessFile.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
-		System.out.println("Length of allBytes: " + allBytes.length);
-		return allBytes;
+		
+		
 	}
 }
