@@ -2,8 +2,7 @@ package com.nedap.university.eline.exchanger.server;
 
 import java.io.*;
 import java.net.*;
-
-import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
+import java.util.Arrays;
 
 /**
  * This program demonstrates how to implement a UDP server program.
@@ -12,61 +11,67 @@ import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
  * @author www.codejava.net
  */
 public class Server {
-    private DatagramSocket socket;
+    private DatagramSocket generalSocket;
+    private ServerHandleUploadingClient serverHandlerUploadingClient;
+    
+    boolean done = false;
  
-    public Server(int port) throws SocketException {
-        socket = new DatagramSocket(port);
+    public Server(int port) {
+        try {
+			generalSocket = new DatagramSocket(port);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        serverHandlerUploadingClient = new ServerHandleUploadingClient();
     }
  
     public static void main(String[] args) {
-        int port = 8080;
- 
-        try {
-            Server server = new Server(port);
-//            server.getChoice();
-            server.receiveAndSaveFile();
-        } catch (SocketException ex) {
-            System.out.println("Socket error: " + ex.getMessage());
-        } 
+        System.out.println("Starting server");
+    	
+    	int port = 8080;
+    	
+    	Server server = new Server(port);
+    	server.start();
+    }
+    
+    public void start() {
+    	while(!done) {
+    		DatagramPacket choicePacket = getChoice();
+    		processChoice(choicePacket);
+    	}
+    	
     }
     
     public DatagramPacket getChoice() {
-    	DatagramPacket response = null;
+    	System.out.println("waiting for a choice");
+    	DatagramPacket choicePacket = null;
     	try {
-			response = new DatagramPacket(new byte[1], 1);
-			socket.receive(response);
+    		byte[] buffer = new byte[1500];
+    		System.out.println(buffer.length);
+    		choicePacket = new DatagramPacket(buffer, buffer.length);
+			generalSocket.receive(choicePacket);
 		} catch (IOException e) {
 			System.out.println("Receiving a message went wrong. Error message: " + e.getMessage());
 		}
-		return response;
-    	
+		return choicePacket;
     }
     
-    public void receiveAndSaveFile() {
-//    	String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/fileLocalTestUpload.pdf";
-    	String absoluteFilePath = "/home/pi/fileLocalTestUpload.pdf";
-    	File file;
+    public void processChoice(final DatagramPacket choicePacket) {
+    	byte[] choiceBytes = choicePacket.getData();
+    	byte[] choiceByte = Arrays.copyOfRange(choiceBytes, 0, 1);
+    	final String choice = new String(choiceByte);
     	
-        try {
-        	file = new File(absoluteFilePath);
-			if(file.createNewFile()){
-			    System.out.println(absoluteFilePath+" File Created in " + file.getAbsolutePath());
-			} else {
-				System.out.println("File already exists, overwriting it!");
-			}
-		    byte[] bytes = new FileReceiveManager(socket).receiveFile();
-	    	try {
-	    		OutputStream os = new FileOutputStream(file);
-				os.write(bytes);
-	    		os.close();
-	    		System.out.println("File was saved to " + file.getAbsolutePath());
-	    	} catch (IOException e) {
-				System.out.println("Saving file to pi failed. Error message: " + e.getMessage());
-			}
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+    	if (choice.equals("u")) {
+    		//TODO send back a message with a chosen port.
+    		serverHandlerUploadingClient.letUserUploadFile(choicePacket);
+    	}
+    	
+    	if (choice.equals("e")) {
+    		//TODO send back a message with a chosen port.
+    		done = true;
+    	}
+    	
     }
 }
 
