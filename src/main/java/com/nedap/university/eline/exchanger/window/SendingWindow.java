@@ -78,4 +78,8 @@ public class SendingWindow extends AbstractWindow {
 	public boolean isInWindow(final int aSeqNum) {
 		return super.isInWindow(lastAckknowledgementReceived, aSeqNum, "SWS");
 	}
+	
+	public boolean isComingSeqNumInWindow() {
+		return isInWindow(getSeqNumOneGreaterThanLastSent());
+	}
 }

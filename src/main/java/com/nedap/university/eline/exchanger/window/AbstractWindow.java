@@ -2,9 +2,9 @@ package com.nedap.university.eline.exchanger.window;
 
 public abstract class AbstractWindow {
 
-    public static final int SENDING_WINDOW_SIZE = 750; //TODO make it possible to change this depending on time out / DACK occurence
+    public static final int SENDING_WINDOW_SIZE = 50; //TODO make it possible to change this depending on time out / DACK occurence
     public static final int SEQUENCE_NUMBER_SPACE = 2000;
-    public static final int RECEIVING_WINDOW_SIZE = 750;
+    public static final int RECEIVING_WINDOW_SIZE = 50;
 	
 	public static boolean isInWindow(final int oneBeforeStartWindow, final int aNumber, final String windowType) {
 		

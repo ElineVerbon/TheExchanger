@@ -7,22 +7,24 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.nedap.university.eline.exchanger.manager.FileSendManager.sendReason;
+import com.nedap.university.eline.exchanger.window.SendingWindow;
 
 public class FilePacketSender extends AbstractSender{
 	
-	private SentFilePacketTracker packetTracker;
 	public static final int timeOutTime = 2;
 	
-	public FilePacketSender(final DatagramSocket socket, final SentFilePacketTracker packetTracker) {
+	private SentFilePacketTracker packetTracker;
+	
+	public FilePacketSender(final DatagramSocket socket, final SentFilePacketTracker packetTracker, final SendingWindow sendingWindow) {
 		super(socket);
 		this.packetTracker = packetTracker;
 	}
 	
-	public void sendFilePacket(final DatagramPacket packet, final sendReason reason, final int seqNumber) {
+	public void sendFilePacket(final DatagramPacket packet, final sendReason reason, final int seqNum) {
 		sendPacket(packet);
-		setPacketTimer(seqNumber);
-		packetTracker.addPacket(seqNumber, packet);
-		updateUser(reason, seqNumber);
+		setPacketTimer(seqNum);
+		packetTracker.addPacket(seqNum, packet);
+		updateUser(reason, seqNum);
     }
 	
 	public void setPacketTimer(final int seqNumber) {

@@ -43,7 +43,7 @@ public class Server {
     }
     
     public void receiveAndSaveFile() {
-    	//String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/fileLocalTestUpload.pdf";
+//    	String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/fileLocalTestUpload.pdf";
     	String absoluteFilePath = "/home/pi/fileLocalTestUpload.pdf";
     	File file;
     	

@@ -111,7 +111,7 @@ public class FileReceiveManager {
 	}
 	
 	public void sendAck() {
-//		System.out.println("sending an ack with seqnum " + rws.getLFR());
+		System.out.println("sending an ack with seqnum " + receivingWindow.getLargestConsecutivePacketReceived());
 		recAllPackets = recLastPacket && packetTracker.allPacketsUpToMostRecentlyArrivedPacketReceived();
 		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, receivingWindow.getLargestConsecutivePacketReceived());
 		ackSender.sendPacket(ack);
@@ -137,8 +137,6 @@ public class FileReceiveManager {
 			System.arraycopy(allBytes, 0, newAllBytes, 0, allBytes.length);
 			System.arraycopy(toBeAddedBytes, 0, newAllBytes, allBytes.length, toBeAddedBytes.length);
 			allBytes = newAllBytes;
-			
-			System.out.println(allBytes.length);
 			//TODO: make into something like below
 			//receivedPackets.entrySet().stream().map(element -> element.getValue()).collect(collector)
 		}

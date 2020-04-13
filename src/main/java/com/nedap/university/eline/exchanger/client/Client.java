@@ -24,7 +24,7 @@ public class Client {
 		try {
 			final ClientTUI clientTUI = new ClientTUI();
 			DatagramSocket socket = new DatagramSocket();
-			//final InetAddress serverAddress = InetAddress.getLocalHost();
+//			final InetAddress serverAddress = InetAddress.getLocalHost();
 			final int serverPort = 8080;
 			final String hostname = "nu-pi-stefan";
 			final InetAddress serverAddress = InetAddress.getByName(hostname);
