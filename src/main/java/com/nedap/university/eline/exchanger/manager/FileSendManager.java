@@ -14,20 +14,23 @@ public class FileSendManager {
     
 	private FilePacketMaker filePacketMaker;
 	private AckReceiver ackReceiver;
+	private String fileName;
 	
 	public enum sendReason { PRIMARY, DACK, TIMER }
 	private boolean noMorePackets = false;
 	private boolean lastAck = false;
 	
-    public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket) {
+    public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket, final String fileName) {
     	SendingWindow sendingWindow = new SendingWindow();
     	SentFilePacketTracker packetTracker = new SentFilePacketTracker();
     	FilePacketSender filePacketSender = new FilePacketSender(socket, packetTracker, sendingWindow);
 		this.filePacketMaker = new FilePacketMaker(bytes, destAddress, destPort, sendingWindow, filePacketSender);
 		this.ackReceiver = new AckReceiver(socket, packetTracker, sendingWindow, filePacketSender);
+		this.fileName = fileName;
     }
     
 	public void sendFile() {
+		System.out.println("2 new threads starting!");
 		
 		new Thread(() -> sendPackets()).start();
 		
@@ -60,6 +63,6 @@ public class FileSendManager {
     	while (!lastAck) {
     		lastAck = ackReceiver.receiveAndProcessAck();
 	    } 
-    	System.out.println("File was successfully uploaded!");
+    	System.out.println("File " + fileName + " was successfully uploaded!");
     }
 }
