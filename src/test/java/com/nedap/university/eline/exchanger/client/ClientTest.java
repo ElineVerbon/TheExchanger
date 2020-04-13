@@ -13,9 +13,9 @@ public class ClientTest {
 	public void testProcessChoice() {
 		//arrange
 		ClientUploaderInterface uploader = EasyMock.createMock(ClientUploaderInterface.class);
-		Client client = new Client(uploader, new ClientTUI());
+		Client client = new Client(uploader);
 		// --> set expectations (part of arrange)
-		uploader.uploadFile();
+		uploader.letClientUploadFile();
 		EasyMock.replay(uploader);
 		
 		//act

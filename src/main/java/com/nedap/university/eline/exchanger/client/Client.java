@@ -8,28 +8,28 @@ import java.net.UnknownHostException;
 public class Client {
 	
 	private ClientUploaderInterface uploader;
-	private ClientTUI clientTUI;
 
 	enum Result{
     	UPLOAD_STARTED, DOWNLOAD_STARTED, EXIT, ERROR
     }
 	
-	public Client(final ClientUploaderInterface uploader, final ClientTUI clientTUI) {
+	public Client(final ClientUploaderInterface uploader) {
 	    this.uploader = uploader;	
-	    this.clientTUI = clientTUI;
 	}
 	
     public static void main(String[] args) {
     	
 		try {
-			final ClientTUI clientTUI = new ClientTUI();
-			DatagramSocket socket = new DatagramSocket();
-//			final InetAddress serverAddress = InetAddress.getLocalHost();
-			final int serverPort = 8080;
-			final String hostname = "nu-pi-stefan";
-			final InetAddress serverAddress = InetAddress.getByName(hostname);
-			clientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
-			Client client = new Client(new ClientUploader(clientTUI, serverPort, serverAddress, socket), clientTUI);
+			final InetAddress serverAddress = InetAddress.getLocalHost();
+			final int generalServerPort = 8080;
+//			final String hostname = "nu-pi-stefan";
+//			final InetAddress serverAddress = InetAddress.getByName(hostname);
+//			clientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
+			
+			ClientUploader uploader = new ClientUploader(generalServerPort, serverAddress);
+			//TODO add downloader and possibly others
+			Client client = new Client(uploader);
+			
 	    	client.start();
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
@@ -42,11 +42,11 @@ public class Client {
     
     public void start() {
     	Result result;
-    	String usersChoice = clientTUI.getChoice("Do you want to download, upload or exit? (d, u or e)");
+    	String usersChoice = ClientTUI.getChoice("Do you want to download, upload or exit? (d, u or e)");
     	
     	do {
             result = processChoice(usersChoice);
-            usersChoice = clientTUI.getChoice("Do you want to download or upload something else or do you want to exit? (d, u or e)");
+            usersChoice = ClientTUI.getChoice("Do you want to download or upload something else or do you want to exit? (d, u or e)");
     	} while (result != Result.EXIT);
     }
     

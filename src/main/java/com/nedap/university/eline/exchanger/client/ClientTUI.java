@@ -27,7 +27,7 @@ public class ClientTUI {
 	 * 
 	 * @param msg the message to write to the standard output.
 	 */
-	public void showMessage(String message) {
+	public static void showMessage(String message) {
 		System.out.println(message);
 	}
 	
@@ -37,7 +37,7 @@ public class ClientTUI {
 	 * @param question, a String representing the question to show to the user
 	 * @return a user-defined String
 	 */
-	public String getChoice(String question) {
+	public static String getChoice(String question) {
 		showMessage(question);
 		List<String> acceptableAnswers = new ArrayList<String>(Arrays.asList("d", "u", "e"));
 		String userInput = "";
@@ -67,7 +67,7 @@ public class ClientTUI {
 	 * @param question, a String representing the question to show to the user
 	 * @return a user-defined String
 	 */
-	public String getString(String question, List<String> acceptableAnswers) {
+	public static String getString(String question, List<String> acceptableAnswers) {
 		showMessage(question);
 		String userInput = "";
 		boolean correctInput = false;
