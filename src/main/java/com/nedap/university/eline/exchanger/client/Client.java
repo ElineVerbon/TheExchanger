@@ -1,8 +1,6 @@
 package com.nedap.university.eline.exchanger.client;
 
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class Client {
@@ -31,9 +29,6 @@ public class Client {
 			Client client = new Client(uploader);
 			
 	    	client.start();
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -52,7 +47,7 @@ public class Client {
     
 	Result processChoice(String usersChoice) {
 		if(usersChoice.equals("u")) {
-			uploader.uploadFile();
+			uploader.letClientUploadFile();
 			return Result.UPLOAD_STARTED;
 		} else if(usersChoice.equals("e")) {
 			return Result.EXIT;

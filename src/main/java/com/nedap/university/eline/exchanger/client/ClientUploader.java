@@ -2,6 +2,7 @@ package com.nedap.university.eline.exchanger.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Files;
@@ -12,39 +13,45 @@ import com.nedap.university.eline.exchanger.manager.FileSendManager;
 
 public class ClientUploader extends AbstractClientExecutor implements ClientUploaderInterface {
 
-	private ClientTUI clientTUI;
-	private int serverPort;
+	private int generalServerPort;
 	private InetAddress serverAddress;
-	private DatagramSocket socket;
 	
-	public ClientUploader(ClientTUI clientTUI, int serverPort, InetAddress serverAddress, DatagramSocket socket) {
-		this.clientTUI = clientTUI;
-		this.serverPort = serverPort;
+	public ClientUploader(int serverPort, InetAddress serverAddress) {
+		this.generalServerPort = serverPort;
 		this.serverAddress = serverAddress;
-		this.socket = socket;
 	}
 	
-    public void uploadFile() {
-//		byte[] choiceIndicator = new byte[] {(byte) 'u'};
-		File toBeUploadedFile = getUserSelectedFile();
-//		byte[] fileNameBytes = toBeUploadedFile.getName().getBytes();
-		
-//		int port = getCorrectServerPort(choiceIndicator, fileNameBytes, serverAddress, serverPort, socket);
-		
-		new Thread(() -> startSending(toBeUploadedFile, serverPort)).start();
-	}
-	
-	public void startSending(final File file, final int port) {
+    public void letClientUploadFile() {
+    	
 		try {
-			new FileSendManager(Files.readAllBytes(file.toPath()), serverAddress, port, socket).sendFile();
-		} catch (IOException e) {
-			clientTUI.showMessage("File could not be converted to byte. Error message: " + e.getMessage());
+			String choice = "u";
+			byte[] choiceIndicator = choice.getBytes("UTF-8");
+			
+			File toBeUploadedFile = getUserSelectedFile();
+			String fileName = toBeUploadedFile.getName();
+			byte[] fileNameBytes = fileName.getBytes("UTF-8");
+			String checkFileName = new String(fileNameBytes);
+			System.out.println(checkFileName);
+					
+			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
+			//TODO add max waiting time for the receive method in getNewServerPort()!
+			final int thisCommunicationsServerPort = getNewServerPort(choiceIndicator, fileNameBytes, serverAddress, 
+					generalServerPort, thisCommunicationsSocket);
+			//TODO wait for a response and save it's port number and address. Then start the communication as before.
+			
+			final byte[] fileBytes = Files.readAllBytes(toBeUploadedFile.toPath());
+			new FileSendManager(fileBytes, serverAddress, thisCommunicationsServerPort, thisCommunicationsSocket, fileName).sendFile();
+			
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("The encoding is not supported!");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-//		System.out.println("> Message from a previous upload command: File " + file.getName() + " was successfully uploaded onto the pi.");
 	}
     
     public File getUserSelectedFile() {
-    	clientTUI.showMessage("Please select a file to upload.");
+    	ClientTUI.showMessage("Please select a file to upload.");
     	JFileChooser jfc = new JFileChooser();
         jfc.showDialog(null,"Please Select the File");
         jfc.setVisible(true);
