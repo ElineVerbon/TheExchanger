@@ -1,12 +1,11 @@
 package com.nedap.university.eline.exchanger.client;
 
 import java.io.File;
+import java.net.DatagramSocket;
 
 public interface ClientUploaderInterface {
 	
-	public void uploadFile();
+	public void letClientUploadFile();
 	
-	public void startSending(final File file, final int port);
-
 	public File getUserSelectedFile();
 }
