@@ -22,9 +22,10 @@ public class ServerHandleUploadingClient {
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
 			
-			String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/" + fileName;
+//			String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/" + fileName;
+			String absoluteFilePath = "/home/pi/" + fileName;
 			new FileReceiveManager(thisCommunicationsSocket, absoluteFilePath, fileName).receiveFile();
-//	    	String absoluteFilePath = "/home/pi/fileLocalTestUpload.pdf";
+	    	
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

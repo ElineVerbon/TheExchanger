@@ -20,11 +20,11 @@ public class Client {
     public static void main(String[] args) {
     	
 		try {
-			final InetAddress serverAddress = InetAddress.getLocalHost();
+//			final InetAddress serverAddress = InetAddress.getLocalHost();
 			final int generalServerPort = 8080;
-//			final String hostname = "nu-pi-stefan";
-//			final InetAddress serverAddress = InetAddress.getByName(hostname);
-//			clientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
+			final String hostname = "nu-pi-stefan";
+			final InetAddress serverAddress = InetAddress.getByName(hostname);
+			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
 			
 			ClientUploader uploader = new ClientUploader(generalServerPort, serverAddress);
 			//TODO add downloader and possibly others
