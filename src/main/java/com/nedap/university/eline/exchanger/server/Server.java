@@ -78,6 +78,10 @@ public class Server {
     		serverHandlerRemovingClient.letUserRemoveFile(choicePacket);
     	} else if (choice.equals(CommunicationStrings.REPLACE)) {
     		serverHandlerReplacingClient.letUserReplaceFile(choicePacket);
+    	} else if (choice.equals(CommunicationStrings.PAUSE)) {
+    		serverHandlerDownloadingClient.pauseAThread(choicePacket);
+    	} else if (choice.equals(CommunicationStrings.CONTINUE)) {
+    		serverHandlerDownloadingClient.resumeAThread(choicePacket);
     	} else if (choice.equals(CommunicationStrings.EXIT)) {
     		done = true;
     	}

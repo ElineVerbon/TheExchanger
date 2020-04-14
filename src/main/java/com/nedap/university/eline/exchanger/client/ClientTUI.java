@@ -50,7 +50,7 @@ public class ClientTUI {
 				userInput = in.readLine();
 				if(!CommunicationStrings.possibleChoices().contains(userInput)) {
 					correctInput = false;
-					showMessage("Only 'u', 'd', 'w', 'r', 'e' and 'h' are acceptable as answers. Please try again. (Type h for help.)");
+					showMessage("Only 'u', 'd', 'w', 'r', 'p', 'c', 'e' and 'h' are acceptable as answers. Please try again. (Type h for help.)");
 				} else {
 					correctInput = true;
 				}

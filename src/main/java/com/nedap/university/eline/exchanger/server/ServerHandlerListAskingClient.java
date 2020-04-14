@@ -39,8 +39,8 @@ public class ServerHandlerListAskingClient {
 		byte[] fileList = null;
 		try {
 			String allFiles = "";
-			File directory = new File("/home/pi");
-//			File directory = new File(System.getProperty ("user.home") + "/Desktop");
+//			File directory = new File("/home/pi");
+			File directory = new File(System.getProperty ("user.home") + "/Desktop");
 			for (File file : directory.listFiles()) {
 				allFiles = allFiles + file.getName() + CommunicationStrings.SEPARATION_NAME_SIZE + file.length() + CommunicationStrings.SEPARATION_TWO_FILES;
 			}

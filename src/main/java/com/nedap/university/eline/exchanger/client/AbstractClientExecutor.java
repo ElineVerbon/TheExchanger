@@ -72,9 +72,8 @@ public abstract class AbstractClientExecutor {
     	
     	return file;
     }
-    
-	
-	public String letUserEnterTheNameOfAFileOnTheServer(final String message, final ClientListAsker listAsker) {
+
+    public String letUserEnterTheNameOfAFileOnTheServer(final String message, final ClientListAsker listAsker) {
 		ClientTUI.showMessage("Please be patient, retrieving all files present on the server.");
 		listAsker.letClientAskForList();
     	ClientTUI.showMessage(message);

@@ -3,6 +3,8 @@ package com.nedap.university.eline.exchanger.client;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
@@ -10,10 +12,12 @@ import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
 public class ClientDownloader extends AbstractClientExecutor {
 	
 	private ClientListAsker listAsker;
+	private Map<String, Thread> startedThreads;
 	
 	public ClientDownloader(int serverPort, InetAddress serverAddress) {
 		super(serverPort, serverAddress);
 		listAsker = new ClientListAsker(serverPort, serverAddress);
+		startedThreads = new HashMap<>();
 	}
 	
 	public void letClientDownloadFile() {
@@ -26,13 +30,31 @@ public class ClientDownloader extends AbstractClientExecutor {
 					+ "Note: you need to type the entire file name, including extension.", listAsker);
 			byte[] fileNameBytes = fileName.getBytes();
 			
+			if (startedThreads.containsKey(fileName)) {
+				if ((startedThreads.get(fileName).getState() == Thread.State.RUNNABLE 
+						|| startedThreads.get(fileName).getState() == Thread.State.TIMED_WAITING)) {
+					ClientTUI.showMessage("A thread is currently running to download this file. The download will not be started to prevent duplicate threads."
+							+ " You can download it again once the currently running download is finished.");
+					thisCommunicationsSocket.close();
+					return;
+				}
+			}
+			
 			final int specificServerPort = letServerKnowWhatTheClientWantsToDoAndGetAServerPort(
 					choiceIndicator, fileNameBytes, thisCommunicationsSocket);
-			//TODO doesn't work on windows!
+			//TODO doesn't work on a Windows computer!
 			String listFileLocation = System.getProperty ("user.home") + "/Desktop/" + fileName;
-			new FileReceiveManager(thisCommunicationsSocket, getServerAddress(), specificServerPort, listFileLocation, fileName).receiveFile();
+			
+			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, getServerAddress(), specificServerPort, listFileLocation, fileName);
+			startAndSaveNewThreadToReceiveFile(fileName, manager);
 		} catch (SocketException e) {
 			ClientTUI.showMessage("Opening a socket to download a file failed.");
 		}
+	}
+	
+	public void startAndSaveNewThreadToReceiveFile(final String fileName, final FileReceiveManager manager) {
+		Thread thread = new Thread(() -> manager.receiveFile());
+		thread.start();
+		startedThreads.put(fileName, thread);
 	}
 }

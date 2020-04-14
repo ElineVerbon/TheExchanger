@@ -10,7 +10,7 @@ import com.nedap.university.eline.exchanger.packet.FilePacketMaker;
 import com.nedap.university.eline.exchanger.packet.FilePacketMaker.CanSend;
 import com.nedap.university.eline.exchanger.window.SendingWindow;
 
-public class FileSendManager {
+public class FileSendManager{
     
 	private FilePacketMaker filePacketMaker;
 	private AckReceiver ackReceiver;
@@ -34,14 +34,22 @@ public class FileSendManager {
 	public void sendFile() {
 		System.out.println("File " + fileName + " is being uploaded.");
 		
-		new Thread(() -> sendPackets()).start();
-		
 		new Thread(() -> checkAcks()).start();
+		
+		sendPackets();
     }
 	
 	public void sendPackets() {
-		
 		while(!noMorePackets) {
+			if (Thread.interrupted()) {
+				//was interrupted by the user: wait under user wants to resume
+				try {
+					while (true) {
+						Thread.sleep(60*60*1000);
+					}
+				} catch (InterruptedException e) {
+				}
+			}
 			CanSend result = filePacketMaker.sendNextPacketIfPossible();
 			if (result == CanSend.NOT_IN_WINDOW) {
 				waitABit();
@@ -56,7 +64,13 @@ public class FileSendManager {
 			//TODO there should be a way to do this without a sleep
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
-			System.out.println("Transmitter at sendPackets() thread was interrupted while sleeping. Error message: " + e.getMessage());
+			//was interrupted by the user: wait under user wants to resume
+			try {
+				while (true) {
+					Thread.sleep(60*60*1000);
+				}
+			} catch (InterruptedException e2) {
+			}
 		}
 	}
 	

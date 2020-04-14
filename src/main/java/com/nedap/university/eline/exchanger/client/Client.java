@@ -12,31 +12,37 @@ public class Client {
 	private ClientDownloader downloader;
 	private ClientRemover remover;
 	private ClientReplacer replacer;
+	private ClientPauser pauser;
+	private ClientResumer resumer;
 	
-	public Client(final ClientUploader uploader, final ClientListAsker listAsker, 
-			final ClientDownloader downloader, final ClientRemover remover, final ClientReplacer replacer) {
+	public Client(final ClientUploader uploader, final ClientListAsker listAsker, final ClientDownloader downloader, 
+			final ClientRemover remover, final ClientReplacer replacer, final ClientPauser pauser, final ClientResumer resumer) {
 	    this.uploader = uploader;
 	    this.listAsker = listAsker;
 	    this.downloader = downloader;
 	    this.remover = remover;
 	    this.replacer = replacer;
+	    this.pauser = pauser;
+	    this.resumer = resumer;
 	}
 	
     public static void main(String[] args) {
     	
 		try {
-//			final InetAddress serverAddress = InetAddress.getLocalHost();
+			final InetAddress serverAddress = InetAddress.getLocalHost();
 			final int generalServerPort = 8080;
-			final String hostname = "nu-pi-stefan";
-			final InetAddress serverAddress = InetAddress.getByName(hostname);
-			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
+//			final String hostname = "nu-pi-stefan";
+//			final InetAddress serverAddress = InetAddress.getByName(hostname);
+//			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
 			
 			ClientUploader uploader = new ClientUploader(generalServerPort, serverAddress);
 			ClientListAsker listAsker = new ClientListAsker(generalServerPort, serverAddress);
 			ClientDownloader downloader = new ClientDownloader(generalServerPort, serverAddress);
 			ClientRemover remover = new ClientRemover(generalServerPort, serverAddress);
 			ClientReplacer replacer = new ClientReplacer(generalServerPort, serverAddress);
-			Client client = new Client(uploader, listAsker, downloader, remover, replacer);
+			ClientPauser pauser = new ClientPauser(generalServerPort, serverAddress);
+			ClientResumer resumer = new ClientResumer(generalServerPort, serverAddress);
+			Client client = new Client(uploader, listAsker, downloader, remover, replacer, pauser, resumer);
 			
 	    	client.start();
 		} catch (UnknownHostException e) {
@@ -71,6 +77,12 @@ public class Client {
 		} else if(usersChoice.equals(CommunicationStrings.REPLACE)) {
 			replacer.letClientReplaceFile();
 			return CommunicationStrings.REPLACE;
+		} else if(usersChoice.equals(CommunicationStrings.PAUSE)) {
+			pauser.letClientPauseDownload();
+			return CommunicationStrings.PAUSE;
+		} else if(usersChoice.equals(CommunicationStrings.CONTINUE)) {
+			resumer.letClientResumeDownload();
+			return CommunicationStrings.CONTINUE;
 		} else if(usersChoice.equals(CommunicationStrings.EXIT)) {
 			return CommunicationStrings.EXIT;
 		}
@@ -81,7 +93,8 @@ public class Client {
 	public void printHelpMenu() {
 		ClientTUI.showMessage("Type one of the following single characters, followed by hitting enter to execute the corresponding action.\n"
 				+ " u: upload a file to the server\n d: download a file from the server\n w: withdraw (remove) a file from the server\n"
-				+ " r: replace a file on the server with a local file\n e: exit the program");
+				+ " r: replace a file on the server with a local file\n p: pause the download of a file\n c: continue the paused download of a file\n"
+				+ " e: exit the program");
 	}
 }
 

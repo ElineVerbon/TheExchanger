@@ -24,7 +24,7 @@ public class FilePacketSender extends AbstractSender{
 		sendPacket(packet);
 		setPacketTimer(seqNum);
 		packetTracker.addPacket(seqNum, packet);
-//		updateUser(reason, seqNum);
+		updateUser(reason, seqNum);
     }
 	
 	public void setPacketTimer(final int seqNumber) {

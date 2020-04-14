@@ -49,7 +49,7 @@ public class FileReceiveManager {
 	public void receiveFile() {
 		System.out.println("Receiving the file " + fileName + ".");
 		
-		new Thread(() -> receivePackets()).start();
+		receivePackets();
 	}
 	
 	public void receivePackets() {
