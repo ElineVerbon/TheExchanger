@@ -76,6 +76,7 @@ public class ClientListAsker extends AbstractClientExecutor {
 				String[] oneFileInfo = file.split(CommunicationMessages.SEPARATION_NAME_SIZE);
 				System.out.printf("%-70s %-70s\n", "Name: " + oneFileInfo[0], "Size (in bytes): " + oneFileInfo[1]);
 			}
+			ClientTUI.showMessage("You can also find this list here: " + listFileLocation);
 			
 		} catch (IOException e) {
 			e.printStackTrace();

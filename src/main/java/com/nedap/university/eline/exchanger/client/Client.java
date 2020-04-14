@@ -9,10 +9,12 @@ public class Client {
 	
 	private ClientUploaderInterface uploader;
 	private ClientListAsker listAsker;
+	private ClientDownloader downloader;
 	
-	public Client(final ClientUploaderInterface uploader, final ClientListAsker listAsker) {
+	public Client(final ClientUploaderInterface uploader, final ClientListAsker listAsker, final ClientDownloader downloader) {
 	    this.uploader = uploader;
 	    this.listAsker = listAsker;
+	    this.downloader = downloader;
 	}
 	
     public static void main(String[] args) {
@@ -26,8 +28,8 @@ public class Client {
 			
 			ClientUploader uploader = new ClientUploader(generalServerPort, serverAddress);
 			ClientListAsker listAsker = new ClientListAsker(generalServerPort, serverAddress);
-			//TODO add downloader and possibly others
-			Client client = new Client(uploader, listAsker);
+			ClientDownloader downloader = new ClientDownloader(generalServerPort, serverAddress);
+			Client client = new Client(uploader, listAsker, downloader);
 			
 	    	client.start();
 		} catch (UnknownHostException e) {
@@ -59,7 +61,10 @@ public class Client {
 		} else if(usersChoice.equals(CommunicationMessages.LIST)) {
 			listAsker.letClientAskForList();
 			return CommunicationMessages.LIST;
-		} else if(usersChoice.equals(CommunicationMessages.EXIT)) {
+		} else if(usersChoice.equals(CommunicationMessages.DOWNLOAD)) {
+			downloader.letClientDownloadFile();
+			return CommunicationMessages.DOWNLOAD;
+		}else if(usersChoice.equals(CommunicationMessages.EXIT)) {
 			return CommunicationMessages.EXIT;
 		}
 		return null;

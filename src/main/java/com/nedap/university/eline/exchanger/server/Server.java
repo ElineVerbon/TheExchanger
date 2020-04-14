@@ -16,6 +16,7 @@ public class Server {
     private DatagramSocket generalSocket;
     private ServerHandlerUploadingClient serverHandlerUploadingClient;
     private ServerHandlerListAskingClient serverHandlerListAskingClient;
+    private ServerHandlerDownloadingClient serverHandlerDownloadingClient;
     
     boolean done = false;
  
@@ -28,6 +29,7 @@ public class Server {
 		}
         serverHandlerUploadingClient = new ServerHandlerUploadingClient();
         serverHandlerListAskingClient = new ServerHandlerListAskingClient();
+        serverHandlerDownloadingClient = new ServerHandlerDownloadingClient();
     }
  
     public static void main(String[] args) {
@@ -63,13 +65,12 @@ public class Server {
     	final String choice = new String(choiceByte);
     	
     	if (choice.equals(CommunicationMessages.UPLOAD)) {
-    		//TODO send back a message with a chosen port.
     		serverHandlerUploadingClient.letUserUploadFile(choicePacket);
     	} else if (choice.equals(CommunicationMessages.LIST)) {
-        		//TODO send back a message with a chosen port.
         	serverHandlerListAskingClient.letUserAskForList(choicePacket);
+    	} else if (choice.equals(CommunicationMessages.DOWNLOAD)) {
+    		serverHandlerDownloadingClient.letUserDownloadFile(choicePacket);
     	} else if (choice.equals(CommunicationMessages.EXIT)) {
-    		//TODO send back a message with a chosen port.
     		done = true;
     	}
     	
