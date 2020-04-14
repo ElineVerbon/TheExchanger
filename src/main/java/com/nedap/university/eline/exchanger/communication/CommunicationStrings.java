@@ -3,7 +3,7 @@ package com.nedap.university.eline.exchanger.communication;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommunicationMessages {
+public class CommunicationStrings {
 	
 	public static final String UPLOAD = "u";
 	public static final String DOWNLOAD = "d";
@@ -11,6 +11,7 @@ public class CommunicationMessages {
 	public static final String WITHDRAW = "w";
 	public static final String REPLACE = "r";
 	public static final String EXIT = "e";
+	public static final String HELP = "h";
 	
 	public static List<String> possibleChoices() {
 		List<String> possibleChoices = new ArrayList<>();
@@ -20,11 +21,19 @@ public class CommunicationMessages {
 		possibleChoices.add(WITHDRAW);
 		possibleChoices.add(REPLACE);
 		possibleChoices.add(EXIT);
+		possibleChoices.add(HELP);
 		return possibleChoices;
+	}
+	
+	public static byte[] toBytes(final String communicationString) {
+		if (!possibleChoices().contains(communicationString)) {
+			throw new IllegalArgumentException();
+		} else {
+			return communicationString.getBytes();
+		}
 	}
 	
 	public static final String SEPARATION_NAME_SIZE = ";";
 	public static final String SEPARATION_TWO_FILES = "/";
-	
 
 }

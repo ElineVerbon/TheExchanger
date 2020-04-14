@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 
-import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 
 /**
  * This program demonstrates how to implement a UDP server program.
@@ -18,6 +18,7 @@ public class Server {
     private ServerHandlerListAskingClient serverHandlerListAskingClient;
     private ServerHandlerDownloadingClient serverHandlerDownloadingClient;
     private ServerHandlerRemovingClient serverHandlerRemovingClient;
+    private ServerHandlerReplacingClient serverHandlerReplacingClient;
     
     boolean done = false;
  
@@ -32,6 +33,7 @@ public class Server {
         serverHandlerListAskingClient = new ServerHandlerListAskingClient();
         serverHandlerDownloadingClient = new ServerHandlerDownloadingClient();
         serverHandlerRemovingClient = new ServerHandlerRemovingClient();
+        serverHandlerReplacingClient = new ServerHandlerReplacingClient();
     }
  
     public static void main(String[] args) {
@@ -66,15 +68,17 @@ public class Server {
     	byte[] choiceByte = Arrays.copyOfRange(choiceBytes, 0, 1);
     	final String choice = new String(choiceByte);
     	
-    	if (choice.equals(CommunicationMessages.UPLOAD)) {
+    	if (choice.equals(CommunicationStrings.UPLOAD)) {
     		serverHandlerUploadingClient.letUserUploadFile(choicePacket);
-    	} else if (choice.equals(CommunicationMessages.LIST)) {
+    	} else if (choice.equals(CommunicationStrings.LIST)) {
         	serverHandlerListAskingClient.letUserAskForList(choicePacket);
-    	} else if (choice.equals(CommunicationMessages.DOWNLOAD)) {
+    	} else if (choice.equals(CommunicationStrings.DOWNLOAD)) {
     		serverHandlerDownloadingClient.letUserDownloadFile(choicePacket);
-    	} else if (choice.equals(CommunicationMessages.WITHDRAW)) {
+    	} else if (choice.equals(CommunicationStrings.WITHDRAW)) {
     		serverHandlerRemovingClient.letUserRemoveFile(choicePacket);
-    	} else if (choice.equals(CommunicationMessages.EXIT)) {
+    	} else if (choice.equals(CommunicationStrings.REPLACE)) {
+    		serverHandlerReplacingClient.letUserReplaceFile(choicePacket);
+    	} else if (choice.equals(CommunicationStrings.EXIT)) {
     		done = true;
     	}
     	

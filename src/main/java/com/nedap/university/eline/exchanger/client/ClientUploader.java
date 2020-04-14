@@ -1,63 +1,39 @@
 package com.nedap.university.eline.exchanger.client;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.file.Files;
 
-import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
 
-public class ClientUploader extends AbstractClientExecutor implements ClientUploaderInterface {
-
-	private int generalServerPort;
-	private InetAddress serverAddress;
+public class ClientUploader extends AbstractClientExecutor {
 	
 	public ClientUploader(int serverPort, InetAddress serverAddress) {
-		this.generalServerPort = serverPort;
-		this.serverAddress = serverAddress;
+		super(serverPort, serverAddress);
 	}
 	
     public void letClientUploadFile() {
-    	
 		try {
-			String choice = CommunicationMessages.UPLOAD;
-			byte[] choiceIndicator = choice.getBytes("UTF-8");
+			byte[] choiceIndicator = CommunicationStrings.toBytes(CommunicationStrings.UPLOAD);
+			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
 			
-			File toBeUploadedFile = getUserSelectedFile();
+			File toBeUploadedFile = getUserSelectedLocalFile("Please type in the absolute filepath of the file you want to upload.");
 			String fileName = toBeUploadedFile.getName();
 			byte[] fileNameBytes = fileName.getBytes("UTF-8");
 					
-			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
-			//TODO add max waiting time for the receive method in getNewServerPort()!
-			final int thisCommunicationsServerPort = getNewServerPort(choiceIndicator, fileNameBytes, serverAddress, 
-					generalServerPort, thisCommunicationsSocket);
+			final int thisCommunicationsServerPort = letServerKnowWhatTheClientWantsToDoAndGetAServerPort(
+					choiceIndicator, fileNameBytes, thisCommunicationsSocket);
 			
 			final byte[] fileBytes = Files.readAllBytes(toBeUploadedFile.toPath());
-			new FileSendManager(fileBytes, serverAddress, thisCommunicationsServerPort, thisCommunicationsSocket, fileName).sendFile();
-			
-		} catch (UnsupportedEncodingException e) {
-			System.out.println("The encoding is not supported!");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-    
-    public File getUserSelectedFile() {
-    	ClientTUI.showMessage("Please type in the absolute filepath of the file you want to upload.");
-    	String absoluteFilePath = ClientTUI.getString();
-    	File file = new File(absoluteFilePath);
-
-    	while (!file.exists()) {
-    		ClientTUI.showMessage("");
-    		ClientTUI.showMessage("The file could not be found. Please try again.");
-    		absoluteFilePath = ClientTUI.getString();
-        	file = new File(absoluteFilePath);
-    	}
-    	
-    	return file;
-    }	
-       
+			new FileSendManager(fileBytes, getServerAddress(), thisCommunicationsServerPort, thisCommunicationsSocket, fileName).sendFile();
+		} catch (SocketException e) {
+			ClientTUI.showMessage("Opening a socket to upload a file failed.");
+		} catch (IOException e) {
+			ClientTUI.showMessage("The file you are trying to upload could not be read.");
+		} 
+	}	  
 }

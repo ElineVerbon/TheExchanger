@@ -10,7 +10,7 @@ import java.net.SocketException;
 import java.nio.file.Files;
 import java.util.Arrays;
 
-import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
 
 public class ServerHandlerDownloadingClient {
@@ -46,7 +46,7 @@ public class ServerHandlerDownloadingClient {
 			File directory = new File("/home/pi");
 //			File directory = new File(System.getProperty ("user.home") + "/Desktop");
 			for (File file : directory.listFiles()) {
-				allFiles = allFiles + file.getName() + CommunicationMessages.SEPARATION_NAME_SIZE + file.length() + CommunicationMessages.SEPARATION_TWO_FILES;
+				allFiles = allFiles + file.getName() + CommunicationStrings.SEPARATION_NAME_SIZE + file.length() + CommunicationStrings.SEPARATION_TWO_FILES;
 			}
 			fileList = allFiles.getBytes("UTF-8");
 		} catch (UnsupportedEncodingException e) {

@@ -3,21 +3,23 @@ package com.nedap.university.eline.exchanger.client;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 
 public class Client {
 	
-	private ClientUploaderInterface uploader;
+	private ClientUploader uploader;
 	private ClientListAsker listAsker;
 	private ClientDownloader downloader;
 	private ClientRemover remover;
+	private ClientReplacer replacer;
 	
-	public Client(final ClientUploaderInterface uploader, final ClientListAsker listAsker, 
-			final ClientDownloader downloader, ClientRemover remover) {
+	public Client(final ClientUploader uploader, final ClientListAsker listAsker, 
+			final ClientDownloader downloader, final ClientRemover remover, final ClientReplacer replacer) {
 	    this.uploader = uploader;
 	    this.listAsker = listAsker;
 	    this.downloader = downloader;
 	    this.remover = remover;
+	    this.replacer = replacer;
 	}
 	
     public static void main(String[] args) {
@@ -33,7 +35,8 @@ public class Client {
 			ClientListAsker listAsker = new ClientListAsker(generalServerPort, serverAddress);
 			ClientDownloader downloader = new ClientDownloader(generalServerPort, serverAddress);
 			ClientRemover remover = new ClientRemover(generalServerPort, serverAddress);
-			Client client = new Client(uploader, listAsker, downloader, remover);
+			ClientReplacer replacer = new ClientReplacer(generalServerPort, serverAddress);
+			Client client = new Client(uploader, listAsker, downloader, remover, replacer);
 			
 	    	client.start();
 		} catch (UnknownHostException e) {
@@ -43,38 +46,42 @@ public class Client {
     }
     
     public void start() {
-    	ClientTUI.showMessage("Do you want to upload, get a list of files, download, upload or exit? (d, l, u or e)");
     	String usersChoice = ClientTUI.getChoice();
     	String result = processChoice(usersChoice);
     	
-    	if (result == null) {
-    		System.out.println("Something went wrong!");
-    	}
-    	
-    	while (result != CommunicationMessages.EXIT) {
-            ClientTUI.showMessage("What do you want to do next? (Upload u, download d, or exit s.)");
+    	while (result != CommunicationStrings.EXIT) {
             usersChoice = ClientTUI.getChoice();
             result = processChoice(usersChoice);
     	} 
     }
     
 	public String processChoice(String usersChoice) {
-		if(usersChoice.equals(CommunicationMessages.UPLOAD)) {
+		if(usersChoice.equals(CommunicationStrings.UPLOAD)) {
 			uploader.letClientUploadFile();
-			return CommunicationMessages.UPLOAD;
-		} else if(usersChoice.equals(CommunicationMessages.LIST)) {
+			return CommunicationStrings.UPLOAD;
+		} else if(usersChoice.equals(CommunicationStrings.LIST)) {
 			listAsker.letClientAskForList();
-			return CommunicationMessages.LIST;
-		} else if(usersChoice.equals(CommunicationMessages.DOWNLOAD)) {
+			return CommunicationStrings.LIST;
+		} else if(usersChoice.equals(CommunicationStrings.DOWNLOAD)) {
 			downloader.letClientDownloadFile();
-			return CommunicationMessages.DOWNLOAD;
-		} else if(usersChoice.equals(CommunicationMessages.WITHDRAW)) {
+			return CommunicationStrings.DOWNLOAD;
+		} else if(usersChoice.equals(CommunicationStrings.WITHDRAW)) {
 			remover.letClientRemoveFile();
-			return CommunicationMessages.WITHDRAW;
-		} else if(usersChoice.equals(CommunicationMessages.EXIT)) {
-			return CommunicationMessages.EXIT;
+			return CommunicationStrings.WITHDRAW;
+		} else if(usersChoice.equals(CommunicationStrings.REPLACE)) {
+			replacer.letClientReplaceFile();
+			return CommunicationStrings.REPLACE;
+		} else if(usersChoice.equals(CommunicationStrings.EXIT)) {
+			return CommunicationStrings.EXIT;
 		}
-		return null;
+		printHelpMenu();
+		return CommunicationStrings.HELP;
+	}
+	
+	public void printHelpMenu() {
+		ClientTUI.showMessage("Type one of the following single characters, followed by hitting enter to execute the corresponding action.\n"
+				+ " u: upload a file to the server\n d: download a file from the server\n w: withdraw (remove) a file from the server\n"
+				+ " r: replace a file on the server with a local file\n e: exit the program");
 	}
 }
 
