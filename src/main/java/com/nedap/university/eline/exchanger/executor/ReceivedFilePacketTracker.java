@@ -19,9 +19,7 @@ public class ReceivedFilePacketTracker {
 		
 		if (!receivedPackets.containsKey(packetNumber)) {
 			receivedPackets.put(packetNumber, dataBytes);
-		} else {
-			throw new IllegalArgumentException("This packetNumber has already been entered.");
-		}
+		} 
 	}
 	
 	public boolean allPacketsUpToMostRecentlyArrivedPacketReceived() {

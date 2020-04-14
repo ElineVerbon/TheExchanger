@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 
+import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+
 /**
  * This program demonstrates how to implement a UDP server program.
  *
@@ -27,8 +29,6 @@ public class Server {
     }
  
     public static void main(String[] args) {
-        System.out.println("Starting server");
-    	
     	int port = 8080;
     	
     	Server server = new Server(port);
@@ -44,11 +44,9 @@ public class Server {
     }
     
     public DatagramPacket getChoice() {
-    	System.out.println("waiting for a choice");
     	DatagramPacket choicePacket = null;
     	try {
     		byte[] buffer = new byte[1500];
-    		System.out.println(buffer.length);
     		choicePacket = new DatagramPacket(buffer, buffer.length);
 			generalSocket.receive(choicePacket);
 		} catch (IOException e) {
@@ -62,12 +60,12 @@ public class Server {
     	byte[] choiceByte = Arrays.copyOfRange(choiceBytes, 0, 1);
     	final String choice = new String(choiceByte);
     	
-    	if (choice.equals("u")) {
+    	if (choice.equals(CommunicationMessages.UPLOAD)) {
     		//TODO send back a message with a chosen port.
     		serverHandlerUploadingClient.letUserUploadFile(choicePacket);
     	}
     	
-    	if (choice.equals("e")) {
+    	if (choice.equals(CommunicationMessages.EXIT)) {
     		//TODO send back a message with a chosen port.
     		done = true;
     	}

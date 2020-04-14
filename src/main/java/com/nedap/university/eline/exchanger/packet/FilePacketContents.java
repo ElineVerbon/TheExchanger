@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class FilePacketContents extends AbstractPacketContents {
 	
 	public final static int HEADERSIZE = SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH + 1;
-	public final static int DATASIZE = 512;
+	public final static int DATASIZE = 2500;
 	private byte[] bytes;
 	private int seqNumber;
 	private boolean lastPacket;

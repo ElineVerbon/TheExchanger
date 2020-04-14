@@ -99,7 +99,7 @@ public class TestFilePacketMaker {
 		final int numberBytes = 10000;
 		FilePacketSender sender = new FilePacketSender(new DatagramSocket(), new SentFilePacketTracker(), new SendingWindow());
 		FilePacketMaker maker = new FilePacketMaker(new byte[numberBytes], InetAddress.getLocalHost(), port, new SendingWindow(), sender);
-		final byte[] allBytes = maker.makeByteArrayForPacket(11, 11, 0);
+		final byte[] allBytes = maker.makeByteArrayForPacket(1, 1, 0);
 		
 		assertEquals(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE, allBytes.length);
 	}
@@ -121,7 +121,7 @@ public class TestFilePacketMaker {
 		final int numberBytes = 10000;
 		FilePacketSender sender = new FilePacketSender(new DatagramSocket(), new SentFilePacketTracker(), new SendingWindow());
 		FilePacketMaker maker = new FilePacketMaker(new byte[numberBytes], InetAddress.getLocalHost(), port, new SendingWindow(), sender);
-		final byte[] bodyBytes = maker.makeBody(10);
+		final byte[] bodyBytes = maker.makeBody(1);
 		
 		assertEquals(FilePacketContents.DATASIZE, bodyBytes.length);
 	}

@@ -30,19 +30,26 @@ public class FileReceiveManager {
 	private boolean recLastPacket = false;
 	private boolean duplicateAck = false;
 	private String absoluteFilePath;
+	private String fileName;
+	private DatagramSocket socket;
 	
-	public FileReceiveManager(final DatagramSocket socket, final String absoluteFilePath) {
+	public FileReceiveManager(final DatagramSocket socket, final String absoluteFilePath, final String fileName) {
+		this.socket = socket;
 		this.receivingWindow= new ReceivingWindow();
 		this.packetTracker = new ReceivedFilePacketTracker();
 		receiver = new Receiver(socket);
 		this.ackSender = new AckSender(socket);
 		this.absoluteFilePath = absoluteFilePath;
+		this.fileName = fileName;
     }
 	
 	public void receiveFile() {
+		System.out.println("Receiving the file " + fileName + ".");
 		
-		System.out.println("Receiving a file...");
-		
+		new Thread(() -> receivePackets()).start();
+	}
+	
+	public void receivePackets() {
 		while(!recAllPackets) {
 			final DatagramPacket packet = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
 			if(firstPacket) {
@@ -54,13 +61,11 @@ public class FileReceiveManager {
 		
 		waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
 		
-		System.out.println("Received all the packets!");
-		
 		saveFile();
+		socket.close();
 	}
 	
 	public void waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
-		System.out.println("waiting");
 		final DatagramPacket possiblePacket = receiver.receivePacketWithTimeOut(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
 		if(possiblePacket != null) {
 			sendDuplicateAck();
@@ -137,13 +142,12 @@ public class FileReceiveManager {
 	public void saveFile() {
 		
 		File file;
+		boolean overWritten = false;
     	
         try {
         	file = new File(absoluteFilePath);
-			if(file.createNewFile()){
-			    System.out.println(absoluteFilePath+" File Created in " + file.getAbsolutePath());
-			} else {
-				System.out.println("File already exists, overwriting it!");
+			if(!file.createNewFile()){
+				overWritten = true;
 			}
 			RandomAccessFile randomAccessFile = new RandomAccessFile(absoluteFilePath, "rw");
 		
@@ -151,6 +155,13 @@ public class FileReceiveManager {
 				randomAccessFile.write(entry.getValue());
 				//TODO: make into something like below
 				//receivedPackets.entrySet().stream().map(element -> element.getValue()).collect(collector)
+			}
+			
+			if (overWritten) {
+				System.out.println("> File " + fileName + " saved in " + file.getAbsolutePath() + ". "
+						+ "Note: there was already a file, it was overwritten!");
+			} else {
+				System.out.println("> File " + fileName + " saved in " + file.getAbsolutePath() + ".");
 			}
 			
 			randomAccessFile.close();

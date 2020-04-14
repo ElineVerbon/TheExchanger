@@ -9,10 +9,6 @@ public class AbstractClientExecutor {
 	
 	public int getNewServerPort(final byte[] choiceByte, final byte[] dataBytes, final InetAddress serverAddress, 
 			final int serverPort, final DatagramSocket socket) {
-		
-		String checkFileName = new String(dataBytes);
-		System.out.println(checkFileName);
-		
     	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes, serverAddress, serverPort);
     	sendToServer(packet, socket);
     	DatagramPacket response = receivePacket(socket);

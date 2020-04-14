@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+
 
 /** 
  * This class is responsible for getting user input from the console.
@@ -37,9 +39,7 @@ public class ClientTUI {
 	 * @param question, a String representing the question to show to the user
 	 * @return a user-defined String
 	 */
-	public static String getChoice(String question) {
-		showMessage(question);
-		List<String> acceptableAnswers = new ArrayList<String>(Arrays.asList("d", "u", "e"));
+	public static String getChoice() {
 		String userInput = "";
 		boolean correctInput = true;
 		
@@ -48,7 +48,7 @@ public class ClientTUI {
 		do {
 			try {
 				userInput = in.readLine();
-				if(!acceptableAnswers.contains(userInput)) {
+				if(!CommunicationMessages.possibleChoices().contains(userInput)) {
 					correctInput = false;
 					showMessage("Only 'd', 'u' and 'e' are acceptable as answers. Please try again.");
 				}
@@ -60,32 +60,15 @@ public class ClientTUI {
 		return userInput;
 	}
 	
-
-	/**
-	 * Prints the question and asks the user to input a String.
-	 * 
-	 * @param question, a String representing the question to show to the user
-	 * @return a user-defined String
-	 */
-	public static String getString(String question, List<String> acceptableAnswers) {
-		showMessage(question);
+	public static String getString() {
 		String userInput = "";
-		boolean correctInput = false;
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		
-		while(!correctInput) {
-			try {
-				userInput = in.readLine();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			if(acceptableAnswers.contains(userInput)) {
-				correctInput = true;
-			} else {
-				System.out.println(userInput);
-				showMessage("Only 'd', 'u' and 'e' are acceptable as answers. Please try again.");
-			}
+		try {
+			userInput = in.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
 		return userInput;

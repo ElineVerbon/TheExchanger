@@ -27,6 +27,16 @@ public class FilePacketMaker {
     	this.filePacketSender = filePacketSender;
 	}
 	
+	public CanSend sendNextPacketIfPossible() {
+		synchronized(sendingWindow) {
+			CanSend canSend = canSendNextPacket();
+			if (canSend == CanSend.YES) {
+				makeAndSendPacket();
+			}
+			return canSend;
+		}
+	}
+	
 	public CanSend canSendNextPacket() {
 		if(((sendingWindow.getPacketNumber() + 1) * FilePacketContents.DATASIZE) >= bytes.length) {
 			return CanSend.NO_MORE_PACKETS;
@@ -47,7 +57,7 @@ public class FilePacketMaker {
 		
 		final int packetNumber = sendingWindow.getPacketNumber();
 		
-		if(!sendingWindow.isInWindow(packetNumber)) {
+		if(!sendingWindow.isInWindow(packetNumber%AbstractWindow.SEQUENCE_NUMBER_SPACE)) {
 			throw new IllegalArgumentException();
 		}
 		

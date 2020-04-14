@@ -21,7 +21,6 @@ public class TestReceivedFilePacketTracker {
 		assertEquals(false, tracker.packetAlreadyReceived(1));
 		
 		assertThrows(IllegalArgumentException.class, () -> tracker.savePacket(bytes1, -1));
-		assertThrows(IllegalArgumentException.class, () -> tracker.savePacket(bytes1, 0));
 		assertThrows(IllegalArgumentException.class, () -> tracker.packetAlreadyReceived(-1));
 	}
 	

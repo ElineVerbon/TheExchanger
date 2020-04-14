@@ -30,7 +30,7 @@ public class FileSendManager {
     }
     
 	public void sendFile() {
-		System.out.println("2 new threads starting!");
+		System.out.println("File " + fileName + " is being uploaded.");
 		
 		new Thread(() -> sendPackets()).start();
 		
@@ -38,15 +38,14 @@ public class FileSendManager {
     }
 	
 	public void sendPackets() {
+		
 		while(!noMorePackets) {
-			CanSend result = filePacketMaker.canSendNextPacket();
+			CanSend result = filePacketMaker.sendNextPacketIfPossible();
 			if (result == CanSend.NOT_IN_WINDOW) {
 				waitABit();
 			} else if (result == CanSend.NO_MORE_PACKETS) {
 				noMorePackets = true;
-			} else if (result == CanSend.YES) {
-				filePacketMaker.makeAndSendPacket();
-			}
+			}  
 		}
 	}
 	
@@ -63,6 +62,6 @@ public class FileSendManager {
     	while (!lastAck) {
     		lastAck = ackReceiver.receiveAndProcessAck();
 	    } 
-    	System.out.println("File " + fileName + " was successfully uploaded!");
+    	System.out.println("> File " + fileName + " was successfully uploaded!");
     }
 }
