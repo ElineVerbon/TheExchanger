@@ -15,12 +15,14 @@ public class FileSendManager {
 	private FilePacketMaker filePacketMaker;
 	private AckReceiver ackReceiver;
 	private String fileName;
+	private DatagramSocket socket;
 	
 	public enum sendReason { PRIMARY, DACK, TIMER }
 	private boolean noMorePackets = false;
 	private boolean lastAck = false;
 	
     public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket, final String fileName) {
+    	this.socket = socket;
     	SendingWindow sendingWindow = new SendingWindow();
     	SentFilePacketTracker packetTracker = new SentFilePacketTracker();
     	FilePacketSender filePacketSender = new FilePacketSender(socket, packetTracker, sendingWindow);
@@ -62,6 +64,7 @@ public class FileSendManager {
     	while (!lastAck) {
     		lastAck = ackReceiver.receiveAndProcessAck();
 	    } 
+    	socket.close();
     	System.out.println("> File " + fileName + " was successfully uploaded!");
     }
 }

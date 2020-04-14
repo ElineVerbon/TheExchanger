@@ -8,13 +8,11 @@ import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
 public class Client {
 	
 	private ClientUploaderInterface uploader;
-
-	enum Result{
-    	UPLOAD_STARTED, DOWNLOAD_STARTED, EXIT, ERROR
-    }
+	private ClientListAsker listAsker;
 	
-	public Client(final ClientUploaderInterface uploader) {
-	    this.uploader = uploader;	
+	public Client(final ClientUploaderInterface uploader, final ClientListAsker listAsker) {
+	    this.uploader = uploader;
+	    this.listAsker = listAsker;
 	}
 	
     public static void main(String[] args) {
@@ -27,8 +25,9 @@ public class Client {
 			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
 			
 			ClientUploader uploader = new ClientUploader(generalServerPort, serverAddress);
+			ClientListAsker listAsker = new ClientListAsker(generalServerPort, serverAddress);
 			//TODO add downloader and possibly others
-			Client client = new Client(uploader);
+			Client client = new Client(uploader, listAsker);
 			
 	    	client.start();
 		} catch (UnknownHostException e) {
@@ -38,26 +37,32 @@ public class Client {
     }
     
     public void start() {
-    	Result result;
-    	ClientTUI.showMessage("Do you want to download, upload or exit? (d, u or e)");
+    	ClientTUI.showMessage("Do you want to upload, get a list of files, download, upload or exit? (d, l, u or e)");
     	String usersChoice = ClientTUI.getChoice();
-    	result = processChoice(usersChoice);
+    	String result = processChoice(usersChoice);
     	
-    	while (result != Result.EXIT) {
+    	if (result == null) {
+    		System.out.println("Something went wrong!");
+    	}
+    	
+    	while (result != CommunicationMessages.EXIT) {
             ClientTUI.showMessage("What do you want to do next? (Upload u, download d, or exit s.)");
             usersChoice = ClientTUI.getChoice();
             result = processChoice(usersChoice);
     	} 
     }
     
-	Result processChoice(String usersChoice) {
+	public String processChoice(String usersChoice) {
 		if(usersChoice.equals(CommunicationMessages.UPLOAD)) {
 			uploader.letClientUploadFile();
-			return Result.UPLOAD_STARTED;
+			return CommunicationMessages.UPLOAD;
+		} else if(usersChoice.equals(CommunicationMessages.LIST)) {
+			listAsker.letClientAskForList();
+			return CommunicationMessages.LIST;
 		} else if(usersChoice.equals(CommunicationMessages.EXIT)) {
-			return Result.EXIT;
+			return CommunicationMessages.EXIT;
 		}
-		return Result.ERROR;
+		return null;
 	}
 }
 

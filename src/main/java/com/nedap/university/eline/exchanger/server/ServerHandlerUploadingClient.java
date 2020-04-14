@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
 
-public class ServerHandleUploadingClient {
+public class ServerHandlerUploadingClient {
 
     public void letUserUploadFile(final DatagramPacket packet) {
     	try {
@@ -24,7 +24,7 @@ public class ServerHandleUploadingClient {
 			
 //			String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/" + fileName;
 			String absoluteFilePath = "/home/pi/" + fileName;
-			new FileReceiveManager(thisCommunicationsSocket, absoluteFilePath, fileName).receiveFile();
+			new FileReceiveManager(thisCommunicationsSocket, clientAddress, clientPort, absoluteFilePath, fileName).receiveFile();
 	    	
 		} catch (IOException e) {
 			e.printStackTrace();

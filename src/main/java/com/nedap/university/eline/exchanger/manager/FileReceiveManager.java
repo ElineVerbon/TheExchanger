@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.Map;
 
 import com.nedap.university.eline.exchanger.executor.AckSender;
@@ -24,21 +25,23 @@ public class FileReceiveManager {
 	private AckPacketMaker ackMaker;
 	private AckSender ackSender;
 	
-	private int[] lastAckedSeqNumPacNumPair = new int[2];
-	public boolean firstPacket = true;
+	private int[] lastAckedSeqNumPacNumPair = new int[] { -1, -1 };
 	public boolean recAllPackets = false;
 	private boolean recLastPacket = false;
 	private boolean duplicateAck = false;
+	
 	private String absoluteFilePath;
 	private String fileName;
 	private DatagramSocket socket;
 	
-	public FileReceiveManager(final DatagramSocket socket, final String absoluteFilePath, final String fileName) {
+	public FileReceiveManager(final DatagramSocket socket, final InetAddress sourceAddress, final int sourcePort, final String absoluteFilePath, final String fileName) {
 		this.socket = socket;
 		this.receivingWindow= new ReceivingWindow();
 		this.packetTracker = new ReceivedFilePacketTracker();
 		receiver = new Receiver(socket);
+		this.ackMaker = new AckPacketMaker(sourceAddress, sourcePort);
 		this.ackSender = new AckSender(socket);
+		
 		this.absoluteFilePath = absoluteFilePath;
 		this.fileName = fileName;
     }
@@ -52,11 +55,7 @@ public class FileReceiveManager {
 	public void receivePackets() {
 		while(!recAllPackets) {
 			final DatagramPacket packet = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
-			if(firstPacket) {
-				this.ackMaker = new AckPacketMaker(packet.getAddress(), packet.getPort());
-			}
 			processPacket(new FilePacketContents(packet));
-			firstPacket = false;
 		}
 		
 		waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
@@ -100,7 +99,7 @@ public class FileReceiveManager {
 	
 	public int getPacketNumber(final int seqNumber) {
 		int packetNumber;
-		if(firstPacket) {
+		if (lastAckedSeqNumPacNumPair[0] == -1) {
 			packetNumber = seqNumber;
 			return packetNumber;
 		} else {

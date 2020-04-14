@@ -5,7 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-public class AbstractClientExecutor {
+public abstract class AbstractClientExecutor {
 	
 	public int getNewServerPort(final byte[] choiceByte, final byte[] dataBytes, final InetAddress serverAddress, 
 			final int serverPort, final DatagramSocket socket) {

@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Files;
 
+import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
 
 public class ClientUploader extends AbstractClientExecutor implements ClientUploaderInterface {
@@ -21,7 +22,7 @@ public class ClientUploader extends AbstractClientExecutor implements ClientUplo
     public void letClientUploadFile() {
     	
 		try {
-			String choice = "u";
+			String choice = CommunicationMessages.UPLOAD;
 			byte[] choiceIndicator = choice.getBytes("UTF-8");
 			
 			File toBeUploadedFile = getUserSelectedFile();

@@ -14,7 +14,8 @@ import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
  */
 public class Server {
     private DatagramSocket generalSocket;
-    private ServerHandleUploadingClient serverHandlerUploadingClient;
+    private ServerHandlerUploadingClient serverHandlerUploadingClient;
+    private ServerHandlerListAskingClient serverHandlerListAskingClient;
     
     boolean done = false;
  
@@ -25,7 +26,8 @@ public class Server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        serverHandlerUploadingClient = new ServerHandleUploadingClient();
+        serverHandlerUploadingClient = new ServerHandlerUploadingClient();
+        serverHandlerListAskingClient = new ServerHandlerListAskingClient();
     }
  
     public static void main(String[] args) {
@@ -63,9 +65,10 @@ public class Server {
     	if (choice.equals(CommunicationMessages.UPLOAD)) {
     		//TODO send back a message with a chosen port.
     		serverHandlerUploadingClient.letUserUploadFile(choicePacket);
-    	}
-    	
-    	if (choice.equals(CommunicationMessages.EXIT)) {
+    	} else if (choice.equals(CommunicationMessages.LIST)) {
+        		//TODO send back a message with a chosen port.
+        	serverHandlerListAskingClient.letUserAskForList(choicePacket);
+    	} else if (choice.equals(CommunicationMessages.EXIT)) {
     		//TODO send back a message with a chosen port.
     		done = true;
     	}
