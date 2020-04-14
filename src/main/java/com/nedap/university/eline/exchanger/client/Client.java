@@ -3,6 +3,8 @@ package com.nedap.university.eline.exchanger.client;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+
 public class Client {
 	
 	private ClientUploaderInterface uploader;
@@ -46,10 +48,10 @@ public class Client {
     }
     
 	Result processChoice(String usersChoice) {
-		if(usersChoice.equals("u")) {
+		if(usersChoice.equals(CommunicationMessages.UPLOAD)) {
 			uploader.letClientUploadFile();
 			return Result.UPLOAD_STARTED;
-		} else if(usersChoice.equals("e")) {
+		} else if(usersChoice.equals(CommunicationMessages.EXIT)) {
 			return Result.EXIT;
 		}
 		return Result.ERROR;
