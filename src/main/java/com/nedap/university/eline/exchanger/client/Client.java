@@ -39,12 +39,15 @@ public class Client {
     
     public void start() {
     	Result result;
-    	String usersChoice = ClientTUI.getChoice("Do you want to download, upload or exit? (d, u or e)");
+    	ClientTUI.showMessage("Do you want to download, upload or exit? (d, u or e)");
+    	String usersChoice = ClientTUI.getChoice();
+    	result = processChoice(usersChoice);
     	
-    	do {
+    	while (result != Result.EXIT) {
+            ClientTUI.showMessage("What do you want to do next? (Upload u, download d, or exit s.)");
+            usersChoice = ClientTUI.getChoice();
             result = processChoice(usersChoice);
-            usersChoice = ClientTUI.getChoice("Do you want to download or upload something else or do you want to exit? (d, u or e)");
-    	} while (result != Result.EXIT);
+    	} 
     }
     
 	Result processChoice(String usersChoice) {
