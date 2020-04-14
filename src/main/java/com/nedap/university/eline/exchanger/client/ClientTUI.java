@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
+import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 
 
 /** 
@@ -40,17 +40,19 @@ public class ClientTUI {
 	 * @return a user-defined String
 	 */
 	public static String getChoice() {
+		ClientTUI.showMessage("What do you want to do? (Type h and hit enter for help.)");
 		String userInput = "";
 		boolean correctInput = true;
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		
 		do {
 			try {
 				userInput = in.readLine();
-				if(!CommunicationMessages.possibleChoices().contains(userInput)) {
+				if(!CommunicationStrings.possibleChoices().contains(userInput)) {
 					correctInput = false;
-					showMessage("Only 'd', 'u' and 'e' are acceptable as answers. Please try again.");
+					showMessage("Only 'u', 'd', 'w', 'r', 'e' and 'h' are acceptable as answers. Please try again. (Type h for help.)");
+				} else {
+					correctInput = true;
 				}
 			} catch (IOException e) {
 				System.out.println("Could not read user input. Error message: " + e.getMessage());
