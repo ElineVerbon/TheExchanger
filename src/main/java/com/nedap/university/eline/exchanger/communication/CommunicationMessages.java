@@ -23,7 +23,8 @@ public class CommunicationMessages {
 		return possibleChoices;
 	}
 	
-	
+	public static final String SEPARATION_NAME_SIZE = ";";
+	public static final String SEPARATION_TWO_FILES = "/";
 	
 
 }

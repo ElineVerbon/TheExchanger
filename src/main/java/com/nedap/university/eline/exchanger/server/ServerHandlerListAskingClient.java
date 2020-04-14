@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Arrays;
 
+import com.nedap.university.eline.exchanger.communication.CommunicationMessages;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
 
 public class ServerHandlerListAskingClient {
@@ -37,11 +38,11 @@ public class ServerHandlerListAskingClient {
 	public byte[] getListOfFiles() {
 		byte[] fileList = null;
 		try {
-			String allFiles = null;
+			String allFiles = "";
 			File directory = new File("/home/pi");
 //			File directory = new File(System.getProperty ("user.home") + "/Desktop");
 			for (File file : directory.listFiles()) {
-				allFiles = allFiles + file.getName() + ":" + file.length() + "/";
+				allFiles = allFiles + file.getName() + CommunicationMessages.SEPARATION_NAME_SIZE + file.length() + CommunicationMessages.SEPARATION_TWO_FILES;
 			}
 			fileList = allFiles.getBytes("UTF-8");
 		} catch (UnsupportedEncodingException e) {
