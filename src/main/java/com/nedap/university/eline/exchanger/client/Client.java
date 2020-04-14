@@ -10,11 +10,14 @@ public class Client {
 	private ClientUploaderInterface uploader;
 	private ClientListAsker listAsker;
 	private ClientDownloader downloader;
+	private ClientRemover remover;
 	
-	public Client(final ClientUploaderInterface uploader, final ClientListAsker listAsker, final ClientDownloader downloader) {
+	public Client(final ClientUploaderInterface uploader, final ClientListAsker listAsker, 
+			final ClientDownloader downloader, ClientRemover remover) {
 	    this.uploader = uploader;
 	    this.listAsker = listAsker;
 	    this.downloader = downloader;
+	    this.remover = remover;
 	}
 	
     public static void main(String[] args) {
@@ -29,7 +32,8 @@ public class Client {
 			ClientUploader uploader = new ClientUploader(generalServerPort, serverAddress);
 			ClientListAsker listAsker = new ClientListAsker(generalServerPort, serverAddress);
 			ClientDownloader downloader = new ClientDownloader(generalServerPort, serverAddress);
-			Client client = new Client(uploader, listAsker, downloader);
+			ClientRemover remover = new ClientRemover(generalServerPort, serverAddress);
+			Client client = new Client(uploader, listAsker, downloader, remover);
 			
 	    	client.start();
 		} catch (UnknownHostException e) {
@@ -64,7 +68,10 @@ public class Client {
 		} else if(usersChoice.equals(CommunicationMessages.DOWNLOAD)) {
 			downloader.letClientDownloadFile();
 			return CommunicationMessages.DOWNLOAD;
-		}else if(usersChoice.equals(CommunicationMessages.EXIT)) {
+		} else if(usersChoice.equals(CommunicationMessages.WITHDRAW)) {
+			remover.letClientRemoveFile();
+			return CommunicationMessages.WITHDRAW;
+		} else if(usersChoice.equals(CommunicationMessages.EXIT)) {
 			return CommunicationMessages.EXIT;
 		}
 		return null;

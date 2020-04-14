@@ -17,6 +17,7 @@ public class Server {
     private ServerHandlerUploadingClient serverHandlerUploadingClient;
     private ServerHandlerListAskingClient serverHandlerListAskingClient;
     private ServerHandlerDownloadingClient serverHandlerDownloadingClient;
+    private ServerHandlerRemovingClient serverHandlerRemovingClient;
     
     boolean done = false;
  
@@ -30,6 +31,7 @@ public class Server {
         serverHandlerUploadingClient = new ServerHandlerUploadingClient();
         serverHandlerListAskingClient = new ServerHandlerListAskingClient();
         serverHandlerDownloadingClient = new ServerHandlerDownloadingClient();
+        serverHandlerRemovingClient = new ServerHandlerRemovingClient();
     }
  
     public static void main(String[] args) {
@@ -70,6 +72,8 @@ public class Server {
         	serverHandlerListAskingClient.letUserAskForList(choicePacket);
     	} else if (choice.equals(CommunicationMessages.DOWNLOAD)) {
     		serverHandlerDownloadingClient.letUserDownloadFile(choicePacket);
+    	} else if (choice.equals(CommunicationMessages.WITHDRAW)) {
+    		serverHandlerRemovingClient.letUserRemoveFile(choicePacket);
     	} else if (choice.equals(CommunicationMessages.EXIT)) {
     		done = true;
     	}
