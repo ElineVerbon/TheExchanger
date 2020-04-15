@@ -95,6 +95,7 @@ public class Client {
 	
 	public void printHelpMenu() {
 		ClientTUI.showMessage("Type one of the following single characters, followed by hitting enter to execute the corresponding action.\n"
+				+ " l: request a list of all files present on the Server. This list will be downloaded and the content printed here\n"
 				+ " u: upload a file to the server\n d: download a file from the server\n w: withdraw (remove) a file from the server\n"
 				+ " r: replace a file on the server with a local file\n p: pause the download of a file\n c: continue the paused download of a file\n"
 				+ " e: exit the program");

@@ -24,7 +24,7 @@ public class ClientTerminator {
 			
 			ClientTUI.showMessage("Goodbye!");
 		} catch (SocketException e) {
-			ClientTUI.showMessage("Opening a socket to download a file failed.");
+			ClientTUI.showMessage("Opening a socket to indicate your exit failed.");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
