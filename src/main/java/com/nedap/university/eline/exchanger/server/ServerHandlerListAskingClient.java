@@ -36,18 +36,16 @@ public class ServerHandlerListAskingClient {
 	}
 	
 	public byte[] getListOfFiles() {
-		byte[] fileList = null;
-		try {
-			String allFiles = "";
-			File directory = new File("/home/pi");
-//			File directory = new File(System.getProperty ("user.home") + "/Desktop");
-			for (File file : directory.listFiles()) {
-				allFiles = allFiles + file.getName() + CommunicationStrings.SEPARATION_NAME_SIZE + file.length() + CommunicationStrings.SEPARATION_TWO_FILES;
-			}
-			fileList = allFiles.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			System.out.println("The encoding is not supported!");
+		String allFiles = "";
+		File directory = new File(Server.ACCESSIBLE_FOLDER);
+		for (File file : directory.listFiles()) {
+			allFiles = allFiles + file.getName() + CommunicationStrings.SEPARATION_NAME_SIZE + file.length() + CommunicationStrings.SEPARATION_TWO_FILES;
 		}
-		return fileList;
+		if (allFiles.length() == 0) {
+			String result = "No files present on the server.";
+			return result.getBytes();
+		} else {
+			return allFiles.getBytes();
+		}
 	}
 }

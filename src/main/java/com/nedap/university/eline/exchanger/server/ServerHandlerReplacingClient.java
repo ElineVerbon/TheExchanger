@@ -22,7 +22,7 @@ public class ServerHandlerReplacingClient {
 			
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
-			File file = new File("/home/pi/" + fileName);
+			File file = new File(Server.ACCESSIBLE_FOLDER + fileName);
 			file.delete();
 			
 //			String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/" + fileName;

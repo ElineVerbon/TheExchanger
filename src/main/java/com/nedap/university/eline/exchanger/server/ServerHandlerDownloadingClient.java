@@ -38,8 +38,7 @@ public class ServerHandlerDownloadingClient {
 			
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
-			File file = new File("/home/pi/" + fileName);
-//			File file = new File(System.getProperty ("user.home") + "/Desktop/" + fileName);
+			File file = new File(Server.ACCESSIBLE_FOLDER + fileName);
 			final byte[] fileBytes = Files.readAllBytes(file.toPath());
 			
 			FileSendManager manager = new FileSendManager(fileBytes, clientAddress, clientPort, thisCommunicationsSocket, fileName);
@@ -63,8 +62,7 @@ public class ServerHandlerDownloadingClient {
 		byte[] fileList = null;
 		try {
 			String allFiles = "";
-			File directory = new File("/home/pi");
-//			File directory = new File(System.getProperty ("user.home") + "/Desktop");
+			File directory = new File(Server.ACCESSIBLE_FOLDER);
 			for (File file : directory.listFiles()) {
 				allFiles = allFiles + file.getName() + CommunicationStrings.SEPARATION_NAME_SIZE + file.length() + CommunicationStrings.SEPARATION_TWO_FILES;
 			}

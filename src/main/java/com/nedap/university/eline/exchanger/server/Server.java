@@ -21,6 +21,9 @@ public class Server {
     private ServerHandlerReplacingClient serverHandlerReplacingClient;
     
     boolean done = false;
+    
+//    public static final String ACCESSIBLE_FOLDER = "/home/pi/accessibleFolder";
+      public static final String ACCESSIBLE_FOLDER = System.getProperty ("user.home") + "/Desktop/";
  
     public Server(int port) {
         try {

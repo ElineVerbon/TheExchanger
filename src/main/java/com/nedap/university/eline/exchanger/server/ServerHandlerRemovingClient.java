@@ -18,7 +18,7 @@ public class ServerHandlerRemovingClient {
 			
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
-			File file = new File("/home/pi/" + fileName);
+			File file = new File(Server.ACCESSIBLE_FOLDER + fileName);
 			boolean success = file.delete();
 			int intSuccess = (success) ? 1 : 0;
 			new DatagramPacket( new byte[] { (byte) intSuccess }, 1, clientAddress, clientPort);
