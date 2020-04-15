@@ -75,4 +75,30 @@ public class ClientTUI {
 		
 		return userInput;
 	}
+	
+	public static boolean getBoolean(String question) {
+		showMessage(question);
+		boolean validInput = false;
+		boolean userBoolean = false;
+		
+		while (!validInput) {
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			String userInput = "";
+			try {
+				userInput = in.readLine();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			if (userInput.equalsIgnoreCase("yes") || userInput.equalsIgnoreCase("y")) { 
+				userBoolean = true; validInput = true;
+			} else if (userInput.equalsIgnoreCase("no") || userInput.equalsIgnoreCase("n")) { 
+				userBoolean = false; validInput = true;
+			} else { 
+				showMessage("Sorry, this is not valid input, please enter yes or no");
+			}
+		}
+		
+		return userBoolean;
+	}
 }

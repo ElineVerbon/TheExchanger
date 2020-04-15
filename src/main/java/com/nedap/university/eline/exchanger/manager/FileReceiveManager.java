@@ -30,11 +30,11 @@ public class FileReceiveManager {
 	private boolean recLastPacket = false;
 	private boolean duplicateAck = false;
 	
-	private String absoluteFilePath;
+	private String absoluteFilePathDir;
 	private String fileName;
 	private DatagramSocket socket;
 	
-	public FileReceiveManager(final DatagramSocket socket, final InetAddress sourceAddress, final int sourcePort, final String absoluteFilePath, final String fileName) {
+	public FileReceiveManager(final DatagramSocket socket, final InetAddress sourceAddress, final int sourcePort, final String absoluteFilePathDir, final String fileName) {
 		this.socket = socket;
 		this.receivingWindow= new ReceivingWindow();
 		this.packetTracker = new ReceivedFilePacketTracker();
@@ -42,7 +42,7 @@ public class FileReceiveManager {
 		this.ackMaker = new AckPacketMaker(sourceAddress, sourcePort);
 		this.ackSender = new AckSender(socket);
 		
-		this.absoluteFilePath = absoluteFilePath;
+		this.absoluteFilePathDir = absoluteFilePathDir;
 		this.fileName = fileName;
     }
 	
@@ -144,6 +144,8 @@ public class FileReceiveManager {
 		boolean overWritten = false;
     	
         try {
+        	final String absoluteFilePath = absoluteFilePathDir + File.separator + fileName;
+        	System.out.println(absoluteFilePath);
         	file = new File(absoluteFilePath);
 			if(!file.createNewFile()){
 				overWritten = true;

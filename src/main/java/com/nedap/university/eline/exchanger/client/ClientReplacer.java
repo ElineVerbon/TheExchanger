@@ -37,6 +37,7 @@ public class ClientReplacer extends AbstractClientExecutor {
 			
 			File toBeUploadedFile = getUserSelectedLocalFile("Please type in the absolute filepath of the file you want to upload."
 					+ "Note: the file will be saved under the name of the file you chose to replace.");
+			fileName = toBeUploadedFile.getName() + " to replace " + fileName;
 			final byte[] fileBytes = Files.readAllBytes(toBeUploadedFile.toPath());
 			new FileSendManager(fileBytes, getServerAddress(), specificServerPort, thisCommunicationsSocket, fileName).sendFile();
 		} catch (SocketException e) {

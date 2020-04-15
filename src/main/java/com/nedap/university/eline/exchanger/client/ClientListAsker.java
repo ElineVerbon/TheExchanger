@@ -3,6 +3,7 @@ package com.nedap.university.eline.exchanger.client;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,12 +13,11 @@ import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
 
 public class ClientListAsker extends AbstractClientExecutor {
 	
-	private String listFileLocation;
+	private DirectoryChooser directoryChooser;
 	
 	public ClientListAsker(int serverPort, InetAddress serverAddress) {
 		super(serverPort, serverAddress);
-		//TODO doesn't work on Windows!
-		listFileLocation = System.getProperty ("user.home") + "/Desktop/listOfFilesOnServer.txt";
+		directoryChooser = new DirectoryChooser();
 	}
 	
 	public String letClientAskForList() {
@@ -26,39 +26,46 @@ public class ClientListAsker extends AbstractClientExecutor {
 		try {
 			byte[] choiceIndicator = CommunicationStrings.toBytes(CommunicationStrings.LIST);
 			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
-			//TODO add max waiting time for the receive method in getNewServerPort()!
+			
+			directoryChooser.chooseDirectory("Please type the directory in which you want to save the downloaded file.", 
+					"listOfFilesOnServer.txt");
+			
 			final int specificServerPort = letServerKnowWhatTheClientWantsToDoAndGetAServerPort(
 					choiceIndicator, new byte[0], thisCommunicationsSocket);
 			
-			if (Files.exists(Paths.get(listFileLocation))) {
-				Files.delete(Paths.get(listFileLocation));
-			}
-			
-			new FileReceiveManager(thisCommunicationsSocket, getServerAddress(), specificServerPort, listFileLocation, "listOfFilesOnServer.txt").receiveFile();
+			new FileReceiveManager(thisCommunicationsSocket, getServerAddress(), specificServerPort, 
+					directoryChooser.getDirectory(), "listOfFilesOnServer.txt").receiveFile();
 			
 			fileNames = printListOfFiles();
 			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (SocketException e) {
+			ClientTUI.showMessage("Opening a socket to aks for the list of files on the server failed.");
 		}
 		
 		return fileNames;
 	}
 	
 	public String printListOfFiles() {
+		Path path = Paths.get(directoryChooser.getAbsolutePath());
+		waitUntilFileExists(path);
+		byte[] fileBytes = getFileContentsOnceDownloaded(path);
 		
-		String fileNames = "";
+		String fileText = new String(fileBytes);
+		String[] fileTextSplitByFile = fileText.split(CommunicationStrings.SEPARATION_TWO_FILES);
+		return printList(fileTextSplitByFile);
+	}
+	
+	public void waitUntilFileExists(final Path path) {
+		while(!Files.exists(path)) {
+			waitABit();
+		}
+	}
+	
+	public byte[] getFileContentsOnceDownloaded(final Path path) {
+		byte[] fileBytes = null;
 		
 		try {
-			Path path = Paths.get(listFileLocation);
-			byte[] fileBytes = null;
-			
 			boolean fileFilled = false;
-			while(!Files.exists(path)) {
-				waitABit();
-			}
-			
 			while(!fileFilled) {
 				fileBytes = Files.readAllBytes(path);
 				if (fileBytes.length == 0) {
@@ -67,22 +74,11 @@ public class ClientListAsker extends AbstractClientExecutor {
 					fileFilled = true;
 				}
 			}
-			
-			String fileText = new String(fileBytes);
-			String[] fileTextSplitByFile = fileText.split(CommunicationStrings.SEPARATION_TWO_FILES);
-			System.out.println("The files on the server are (name -- size in bytes):");
-			for (String file : fileTextSplitByFile) {
-				String[] oneFileInfo = file.split(CommunicationStrings.SEPARATION_NAME_SIZE);
-				System.out.printf("%-70s %-70s\n", "Name: " + oneFileInfo[0], "Size (in bytes): " + oneFileInfo[1]);
-				fileNames = fileNames + CommunicationStrings.SEPARATION_TWO_FILES + oneFileInfo[0];
-			}
-			ClientTUI.showMessage("You can also find this list here: " + listFileLocation);
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		return fileNames;
+	
+		return fileBytes;
 	}
 	
 	public void waitABit() {
@@ -92,6 +88,17 @@ public class ClientListAsker extends AbstractClientExecutor {
 		} catch (InterruptedException e) {
 			System.out.println("Transmitter at sendPackets() thread was interrupted while sleeping. Error message: " + e.getMessage());
 		}
+	}
+	
+	public String printList(final String[] fileTextSplitByFile) {
+		ClientTUI.showMessage("The files on the server are (name -- size in bytes):");
+		String fileNames = "";
+		for (String file : fileTextSplitByFile) {
+			String[] oneFileInfo = file.split(CommunicationStrings.SEPARATION_NAME_SIZE);
+			System.out.printf("%-70s %-70s\n", "Name: " + oneFileInfo[0], "Size (in bytes): " + oneFileInfo[1]);
+			fileNames = fileNames + CommunicationStrings.SEPARATION_TWO_FILES + oneFileInfo[0];
+		}
+		return fileNames;
 	}
 
 }

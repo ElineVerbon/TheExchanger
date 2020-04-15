@@ -12,11 +12,13 @@ import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
 public class ClientDownloader extends AbstractClientExecutor {
 	
 	private ClientListAsker listAsker;
+	private DirectoryChooser directoryChooser;
 	private Map<String, Thread> startedThreads;
 	
 	public ClientDownloader(int serverPort, InetAddress serverAddress) {
 		super(serverPort, serverAddress);
 		listAsker = new ClientListAsker(serverPort, serverAddress);
+		directoryChooser = new DirectoryChooser();
 		startedThreads = new HashMap<>();
 	}
 	
@@ -46,12 +48,12 @@ public class ClientDownloader extends AbstractClientExecutor {
 				}
 			}
 			
+			directoryChooser.chooseDirectory("Please type the directory in which you want to save the downloaded file.", fileName);
+			
 			final int specificServerPort = letServerKnowWhatTheClientWantsToDoAndGetAServerPort(
 					choiceIndicator, fileNameBytes, thisCommunicationsSocket);
-			//TODO doesn't work on a Windows computer!
-			String listFileLocation = System.getProperty ("user.home") + "/Desktop/" + fileName;
 			
-			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, getServerAddress(), specificServerPort, listFileLocation, fileName);
+			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, getServerAddress(), specificServerPort, directoryChooser.getDirectory(), fileName);
 			startAndSaveNewThreadToReceiveFile(fileName, manager);
 		} catch (SocketException e) {
 			ClientTUI.showMessage("Opening a socket to download a file failed.");

@@ -24,6 +24,8 @@ public class ServerHandlerRemovingClient {
 			new DatagramPacket( new byte[] { (byte) intSuccess }, 1, clientAddress, clientPort);
 			thisCommunicationsSocket.send(new DatagramPacket( new byte[] { (byte) intSuccess }, 1, clientAddress, clientPort));
 			
+			thisCommunicationsSocket.close();
+			
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

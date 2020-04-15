@@ -78,7 +78,7 @@ public abstract class AbstractClientExecutor {
     }
 
     public String letUserEnterTheNameOfAFileOnTheServer(final String message, final ClientListAsker listAsker) {
-		ClientTUI.showMessage("Please be patient, retrieving all files present on the server.");
+		ClientTUI.showMessage("We will first download all the files on the server.");
 		String fileNamesOnServer = listAsker.letClientAskForList();
     	ClientTUI.showMessage(message);
     	String fileName = ClientTUI.getString();
@@ -93,5 +93,4 @@ public abstract class AbstractClientExecutor {
     	
     	return fileName;
     }
-
 }
