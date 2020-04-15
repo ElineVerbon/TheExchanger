@@ -34,7 +34,7 @@ public class FileChooser {
     }
 
     public String letUserEnterTheNameOfAFileOnTheServer(final String message, final ClientListAsker listAsker) throws UserQuitToMainMenuException, SocketTimeoutException {
-		ClientTUI.showMessage("We will first download all the files on the server.");
+		ClientTUI.showMessage("To let you choose among the available files, a list of the files on the server will be downloaded first.");
 		String fileNamesOnServer = listAsker.letClientAskForList();
     	ClientTUI.showMessage(message);
     	

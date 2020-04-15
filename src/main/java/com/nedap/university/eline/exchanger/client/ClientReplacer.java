@@ -29,8 +29,8 @@ public class ClientReplacer {
 		
 			String fileName = fileChooser.letUserEnterTheNameOfAFileOnTheServer("Please type the name of one of file you want to replace. "
 					+ "Note: you need to type the entire file name, including extension.", listAsker);
-			File toBeUploadedFile = fileChooser.getUserSelectedLocalFile("Please type in the absolute filepath of the file you want to upload."
-					+ "Note: the file will be saved under the name of the file you chose to replace.");
+			File toBeUploadedFile = fileChooser.getUserSelectedLocalFile("Please type the absolute filepath of the file you want to upload."
+					+ " Note: the file will be saved under the name of the file you chose to replace.");
 			
 			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
 			byte[] fileNameBytes = fileName.getBytes();
