@@ -34,7 +34,8 @@ public class ServerHandlerReplacingClient {
 			
 			String absoluteFilePath = Server.ACCESSIBLE_FOLDER + fileName;
 			Files.deleteIfExists(Paths.get(absoluteFilePath));
-			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, clientAddress, clientPort, absoluteFilePath, fileName);
+			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, 
+					clientAddress, clientPort, Server.ACCESSIBLE_FOLDER, fileName);
 			startAndSaveNewThreadToReceiveFile(manager);
 			
 		} catch (IOException e) {
