@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import com.nedap.university.eline.exchanger.exceptions.UserQuitToMainMenuException;
+
 public class DirectoryChooser {
 
 	private String absolutePath;
@@ -27,13 +29,15 @@ public class DirectoryChooser {
 		return directory;
 	}
 	
-	public void chooseDirectory(final String message, final String fileName) {
+	public boolean chooseDirectory(final String message, final String fileName) throws UserQuitToMainMenuException {
+		
 		try {
 			boolean correctInput = false;
 			directory = "";
 			
 			while (!correctInput) {
 				directory = getDirectory(message);
+				
 				absolutePath = directory + File.separator + fileName;
 				
 				if (Files.exists(Paths.get(absolutePath))) {
@@ -49,9 +53,10 @@ public class DirectoryChooser {
 		} catch (IOException e) {
 			System.out.println("Could not check the path and file while user chooses a directory.");
 		}
+		return true;
 	}
     
-    public String getDirectory(final String message) {
+    public String getDirectory(final String message) throws UserQuitToMainMenuException {
     	
     	if (dirSaved) {
 			if (ClientTUI.getBoolean("Do you want to save the file to the previous path (" + savedPath + ")? (y / n)")) {
@@ -61,18 +66,26 @@ public class DirectoryChooser {
     	
     	ClientTUI.showMessage(message);
     	String absoluteFilePathDir = ClientTUI.getString();
+    	checkForExit(absoluteFilePathDir);
     	File file = new File(absoluteFilePathDir);
 
-    	while (!(file.isDirectory() || absoluteFilePathDir.equals("x"))) {
+    	while (!file.isDirectory()) {
     		ClientTUI.showMessage("");
     		ClientTUI.showMessage("The String you typed is not a directory on this computer. "
     				+ "Please try again. (Type x to return to the main menu.)");
     		absoluteFilePathDir = ClientTUI.getString();
+    		checkForExit(absoluteFilePathDir);
         	file = new File(absoluteFilePathDir);
     	}
     	savedPath = absoluteFilePathDir;
     	
     	return absoluteFilePathDir;
+    }
+    
+    public void checkForExit(final String string) throws UserQuitToMainMenuException {
+    	if (string.equals("x")) {
+    		throw new UserQuitToMainMenuException();
+    	}
     }
 
 }

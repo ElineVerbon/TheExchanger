@@ -1,9 +1,11 @@
 package com.nedap.university.eline.exchanger.client;
 
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
+import com.nedap.university.eline.exchanger.exceptions.UserQuitToMainMenuException;
 
 public class Client {
 	
