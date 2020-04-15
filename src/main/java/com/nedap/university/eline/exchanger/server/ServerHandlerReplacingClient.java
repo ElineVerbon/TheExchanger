@@ -1,10 +1,11 @@
 package com.nedap.university.eline.exchanger.server;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,10 +31,9 @@ public class ServerHandlerReplacingClient {
 			
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
-			File file = new File(Server.ACCESSIBLE_FOLDER + fileName);
-			file.delete();
 			
 			String absoluteFilePath = Server.ACCESSIBLE_FOLDER + fileName;
+			Files.deleteIfExists(Paths.get(absoluteFilePath));
 			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, clientAddress, clientPort, absoluteFilePath, fileName);
 			startAndSaveNewThreadToReceiveFile(manager);
 			
