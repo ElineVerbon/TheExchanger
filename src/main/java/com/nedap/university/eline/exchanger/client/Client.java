@@ -28,6 +28,8 @@ public class Client {
 	
     public static void main(String[] args) {
     	
+    	ClientTUI.showMessage("Client is starting up, please be patient.");
+    	
 		try {
 			final InetAddress serverAddress = InetAddress.getLocalHost();
 			final int generalServerPort = 8080;
