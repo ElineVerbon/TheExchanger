@@ -31,6 +31,7 @@ public class ClientRemover {
 		while(moreRemovals) {
 			fileName = fileChooser.letUserEnterAnotherName();
 			removeFile();
+			moreRemovals = ClientTUI.getBoolean("Do you want to remove more files?");
 		}
 	}
 	
