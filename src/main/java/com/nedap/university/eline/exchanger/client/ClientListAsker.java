@@ -20,7 +20,9 @@ public class ClientListAsker extends AbstractClientExecutor {
 		listFileLocation = System.getProperty ("user.home") + "/Desktop/listOfFilesOnServer.txt";
 	}
 	
-	public void letClientAskForList() {
+	public String letClientAskForList() {
+		String fileNames = "";
+		
 		try {
 			byte[] choiceIndicator = CommunicationStrings.toBytes(CommunicationStrings.LIST);
 			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
@@ -34,16 +36,19 @@ public class ClientListAsker extends AbstractClientExecutor {
 			
 			new FileReceiveManager(thisCommunicationsSocket, getServerAddress(), specificServerPort, listFileLocation, "listOfFilesOnServer.txt").receiveFile();
 			
-			printListOfFiles();
+			fileNames = printListOfFiles();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return fileNames;
 	}
 	
-	public void printListOfFiles() {
-		//move file to bin if is exists
+	public String printListOfFiles() {
+		
+		String fileNames = "";
 		
 		try {
 			Path path = Paths.get(listFileLocation);
@@ -69,12 +74,15 @@ public class ClientListAsker extends AbstractClientExecutor {
 			for (String file : fileTextSplitByFile) {
 				String[] oneFileInfo = file.split(CommunicationStrings.SEPARATION_NAME_SIZE);
 				System.out.printf("%-70s %-70s\n", "Name: " + oneFileInfo[0], "Size (in bytes): " + oneFileInfo[1]);
+				fileNames = fileNames + CommunicationStrings.SEPARATION_TWO_FILES + oneFileInfo[0];
 			}
 			ClientTUI.showMessage("You can also find this list here: " + listFileLocation);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		return fileNames;
 	}
 	
 	public void waitABit() {

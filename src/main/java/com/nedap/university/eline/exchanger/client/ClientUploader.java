@@ -23,6 +23,12 @@ public class ClientUploader extends AbstractClientExecutor {
 			
 			File toBeUploadedFile = getUserSelectedLocalFile("Please type in the absolute filepath of the file you want to upload.");
 			String fileName = toBeUploadedFile.getName();
+			
+			if (fileName.equals("x")) {
+				thisCommunicationsSocket.close();
+				return;
+			}
+			
 			byte[] fileNameBytes = fileName.getBytes("UTF-8");
 					
 			final int thisCommunicationsServerPort = letServerKnowWhatTheClientWantsToDoAndGetAServerPort(

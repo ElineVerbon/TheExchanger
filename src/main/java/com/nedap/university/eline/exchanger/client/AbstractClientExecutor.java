@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.List;
+
+import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 
 public abstract class AbstractClientExecutor {
 	
@@ -63,9 +67,9 @@ public abstract class AbstractClientExecutor {
     	String absoluteFilePath = ClientTUI.getString();
     	File file = new File(absoluteFilePath);
 
-    	while (!file.exists()) {
+    	while (!(file.exists() || absoluteFilePath.equals("x"))) {
     		ClientTUI.showMessage("");
-    		ClientTUI.showMessage("The file could not be found. Please try again.");
+    		ClientTUI.showMessage("The file could not be found. Please try again. (Type x to return to the main menu.)");
     		absoluteFilePath = ClientTUI.getString();
         	file = new File(absoluteFilePath);
     	}
@@ -75,11 +79,16 @@ public abstract class AbstractClientExecutor {
 
     public String letUserEnterTheNameOfAFileOnTheServer(final String message, final ClientListAsker listAsker) {
 		ClientTUI.showMessage("Please be patient, retrieving all files present on the server.");
-		listAsker.letClientAskForList();
+		String fileNamesOnServer = listAsker.letClientAskForList();
     	ClientTUI.showMessage(message);
     	String fileName = ClientTUI.getString();
     	
-    	//TODO, would like to test here whether the file exists on the pi (ie is in the list).
+    	List<String> fileNames = Arrays.asList(fileNamesOnServer.split(CommunicationStrings.SEPARATION_TWO_FILES));
+    	while (!(fileNames.contains(fileName) || fileName.equals("x"))) {
+    		ClientTUI.showMessage("The file name is not known on the server. Please try again. (Type x to return to the main menu.)");
+    		fileName = ClientTUI.getString();
+    	}
+    	
     	//TODO, would like to check whether it will overwrite another file ont he desktop.
     	
     	return fileName;

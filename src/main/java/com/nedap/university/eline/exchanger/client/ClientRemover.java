@@ -26,6 +26,11 @@ public class ClientRemover extends AbstractClientExecutor {
 					+ "Note: you need to type the entire file name, including extension.", listAsker);
 			byte[] fileNameBytes = fileName.getBytes();
 			
+			if (fileName.equals("x")) {
+				thisCommunicationsSocket.close();
+				return;
+			}
+			
 			DatagramPacket packet = makeDataPacket(choiceIndicator, fileNameBytes, getServerAddress(), getGeneralServerPort());
 			sendToServer(packet, thisCommunicationsSocket);
 	    	DatagramPacket response = receivePacket(thisCommunicationsSocket);

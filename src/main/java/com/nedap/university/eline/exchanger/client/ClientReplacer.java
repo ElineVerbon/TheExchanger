@@ -26,6 +26,12 @@ public class ClientReplacer extends AbstractClientExecutor {
 		
 			String fileName = letUserEnterTheNameOfAFileOnTheServer("Please type the name of one of file you want to replace. "
 					+ "Note: you need to type the entire file name, including extension.", listAsker);
+			
+			if (fileName.equals("x")) {
+				thisCommunicationsSocket.close();
+				return;
+			}
+			
 			byte[] fileNameBytes = fileName.getBytes();
 			final int specificServerPort = letServerKnowWhatTheClientWantsToDoAndGetAServerPort(choiceIndicator, fileNameBytes, thisCommunicationsSocket);
 			
