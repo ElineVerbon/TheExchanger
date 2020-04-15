@@ -24,10 +24,18 @@ public class ChoiceCommunicator {
 		return serverAddress;
 	}
 	
+	public DatagramPacket communicateChoiceToServerAndExpectLongerResponse(final byte[] choiceByte, final byte[] dataBytes, 
+			final DatagramSocket socket) throws SocketTimeoutException {
+    	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes, serverAddress, generalServerPort);
+    	sendToServer(packet, socket);
+    	DatagramPacket response = receivePacket(socket, 2000);
+    	return response;
+    }
+	
 	public DatagramPacket communicateChoiceToServer(final byte[] choiceByte, final byte[] dataBytes, final DatagramSocket socket) throws SocketTimeoutException {
     	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes, serverAddress, generalServerPort);
     	sendToServer(packet, socket);
-    	DatagramPacket response = receivePacket(socket);
+    	DatagramPacket response = receivePacket(socket, 1);
     	return response;
     }
     
@@ -40,10 +48,10 @@ public class ChoiceCommunicator {
 	}
     
     
-    private DatagramPacket receivePacket(DatagramSocket socket) throws SocketTimeoutException {
+    private DatagramPacket receivePacket(DatagramSocket socket, final int bufferSize) throws SocketTimeoutException {
 		DatagramPacket response = null;
     	try {
-    		response = new DatagramPacket(new byte[1], 1);
+    		response = new DatagramPacket(new byte[bufferSize], bufferSize);
 			socket.setSoTimeout(2000);
 			socket.receive(response);
 		} catch (SocketException e) {

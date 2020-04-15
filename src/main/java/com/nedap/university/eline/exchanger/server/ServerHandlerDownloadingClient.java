@@ -20,12 +20,12 @@ import com.nedap.university.eline.exchanger.manager.FileSendManager;
 public class ServerHandlerDownloadingClient {
 	
 	private Map<String, Thread> startedThreads;
-	private List<String> filesWithAnAnterruptedThread;
+	private List<String> filesWithAnAnterruptedDownloadThread;
 	private List<FileSendManager> managers;
 	
 	public ServerHandlerDownloadingClient() {
 		this.startedThreads = new HashMap<>();
-		this.filesWithAnAnterruptedThread = new ArrayList<>();
+		this.filesWithAnAnterruptedDownloadThread = new ArrayList<>();
 		managers = new ArrayList<>();
 	}
 
@@ -92,12 +92,12 @@ public class ServerHandlerDownloadingClient {
 			} else if (!(startedThreads.get(fileName).getState() == Thread.State.RUNNABLE 
 					|| startedThreads.get(fileName).getState() == Thread.State.TIMED_WAITING)) {
 				outcome = CommunicationStrings.toBytes(CommunicationStrings.FINISHED);
-			} else if (filesWithAnAnterruptedThread.contains(fileName)) {
+			} else if (filesWithAnAnterruptedDownloadThread.contains(fileName)) {
 				outcome = CommunicationStrings.toBytes(CommunicationStrings.INTERRUPTED);
 			} else {
 				startedThreads.get(fileName).interrupt();
-				filesWithAnAnterruptedThread.add(fileName);
-				System.out.println(filesWithAnAnterruptedThread.get(0));
+				filesWithAnAnterruptedDownloadThread.add(fileName);
+				System.out.println(filesWithAnAnterruptedDownloadThread.get(0));
 				outcome = CommunicationStrings.toBytes(CommunicationStrings.SUCCESS);
 			}
 			
@@ -111,12 +111,29 @@ public class ServerHandlerDownloadingClient {
 		}
 	}
 	
+	
+	public String getListOfPausedThreads() {
+		String pausedThreads = "";
+		for (String file : filesWithAnAnterruptedDownloadThread) {
+			pausedThreads = file + CommunicationStrings.SEPARATION_TWO_FILES;
+		}
+		return pausedThreads;
+	}
+	
 	public void resumeAThread(final DatagramPacket packet) {
 		try {
 			final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();
 	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
 			
+	    	final String pausedFileNames = getListOfPausedThreads();
+	    	byte[] pausedFileNamesBytes = pausedFileNames.getBytes();
+	    	thisCommunicationsSocket.send(new DatagramPacket(pausedFileNamesBytes, pausedFileNamesBytes.length, clientAddress, clientPort));
+	    	
+	    	byte[] buffer = new byte[1500];
+    		final DatagramPacket response = new DatagramPacket(buffer, buffer.length);
+    		thisCommunicationsSocket.receive(response);
+	    	
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
 			
@@ -127,11 +144,11 @@ public class ServerHandlerDownloadingClient {
 			}  else if (!(startedThreads.get(fileName).getState() == Thread.State.RUNNABLE 
 					|| startedThreads.get(fileName).getState() == Thread.State.TIMED_WAITING)) {
 				outcome = CommunicationStrings.toBytes(CommunicationStrings.FINISHED);
-			} else if (!(filesWithAnAnterruptedThread.contains(fileName))) {
+			} else if (!(filesWithAnAnterruptedDownloadThread.contains(fileName))) {
 				outcome = CommunicationStrings.toBytes(CommunicationStrings.INTERRUPTED);
 			} else {
 				startedThreads.get(fileName).interrupt();
-				filesWithAnAnterruptedThread.remove(fileName);
+				filesWithAnAnterruptedDownloadThread.remove(fileName);
 				outcome = CommunicationStrings.toBytes(CommunicationStrings.SUCCESS);
 			}
 			

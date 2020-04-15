@@ -1,7 +1,9 @@
 package com.nedap.university.eline.exchanger.client;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
@@ -21,13 +23,23 @@ private ChoiceCommunicator communicator;
 			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
 			//TODO add max waiting time for the receive method in getNewServerPort()
 			
+			//send to server that I want to continue downloads
+	    	DatagramPacket response = communicator.communicateChoiceToServerAndExpectLongerResponse(choiceIndicator, 
+	    			new byte[0], thisCommunicationsSocket);
+			ClientTUI.showMessage("These files are currently in a paused download:");
+	    	
+			String pausedFileNames = new String(response.getData());
+		
 			ClientTUI.showMessage("Please type the name of name of the file with a paused download that you want to resume"
 					+ " and hit enter. Note: you need to type the entire file name, including extension.");
 			String fileName = ClientTUI.getString();
 			byte[] fileNameBytes = fileName.getBytes();
 			
-	    	DatagramPacket response = communicator.communicateChoiceToServer(choiceIndicator, fileNameBytes,thisCommunicationsSocket);
+			//send to server that I want to continue downloads
+	    	response = communicator.communicateChoiceToServer(choiceIndicator, fileNameBytes,thisCommunicationsSocket);
+	    	//receive message with all currently paused downloads
 	    	byte[] responseBytes = response.getData();
+	    	//let server know which one I want to continue
 			
 	    	updateUser(responseBytes);
 		} catch (SocketException e) {
