@@ -14,9 +14,11 @@ public class Client {
 	private ClientReplacer replacer;
 	private ClientPauser pauser;
 	private ClientResumer resumer;
+	private ClientTerminator terminator;
 	
 	public Client(final ClientUploader uploader, final ClientListAsker listAsker, final ClientDownloader downloader, 
-			final ClientRemover remover, final ClientReplacer replacer, final ClientPauser pauser, final ClientResumer resumer) {
+			final ClientRemover remover, final ClientReplacer replacer, final ClientPauser pauser, 
+			final ClientResumer resumer, final ClientTerminator terminator) {
 	    this.uploader = uploader;
 	    this.listAsker = listAsker;
 	    this.downloader = downloader;
@@ -24,6 +26,7 @@ public class Client {
 	    this.replacer = replacer;
 	    this.pauser = pauser;
 	    this.resumer = resumer;
+	    this.terminator = terminator;
 	}
 	
     public static void main(String[] args) {
@@ -31,20 +34,24 @@ public class Client {
     	ClientTUI.showMessage("Client is starting up, please be patient.");
     	
 		try {
-//			final InetAddress serverAddress = InetAddress.getLocalHost();
+			final InetAddress serverAddress = InetAddress.getLocalHost();
 			final int generalServerPort = 8080;
-			final String hostname = "nu-pi-stefan";
-			final InetAddress serverAddress = InetAddress.getByName(hostname);
-			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
+//			final String hostname = "nu-pi-stefan";
+//			final InetAddress serverAddress = InetAddress.getByName(hostname);
+//			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
 			
-			ClientUploader uploader = new ClientUploader(generalServerPort, serverAddress);
-			ClientListAsker listAsker = new ClientListAsker(generalServerPort, serverAddress);
-			ClientDownloader downloader = new ClientDownloader(generalServerPort, serverAddress);
-			ClientRemover remover = new ClientRemover(generalServerPort, serverAddress);
-			ClientReplacer replacer = new ClientReplacer(generalServerPort, serverAddress);
-			ClientPauser pauser = new ClientPauser(generalServerPort, serverAddress);
-			ClientResumer resumer = new ClientResumer(generalServerPort, serverAddress);
-			Client client = new Client(uploader, listAsker, downloader, remover, replacer, pauser, resumer);
+			ChoiceCommunicator communicator = new ChoiceCommunicator(generalServerPort, serverAddress);
+			ClientListAsker listAsker = new ClientListAsker(communicator);
+			ClientDownloader downloader = new ClientDownloader(communicator, listAsker);
+			ClientUploader uploader = new ClientUploader(communicator);
+			ClientPauser pauser = new ClientPauser(communicator);
+			ClientRemover remover = new ClientRemover(communicator, listAsker);
+			ClientReplacer replacer = new ClientReplacer(communicator, listAsker);
+			ClientResumer resumer = new ClientResumer(communicator);
+			ClientTerminator terminator = new ClientTerminator(communicator);
+			
+			Client client = new Client(uploader, listAsker, downloader, remover, replacer, 
+					pauser, resumer, terminator);
 			
 	    	client.start();
 		} catch (UnknownHostException e) {
@@ -55,42 +62,34 @@ public class Client {
     
     public void start() {
     	String usersChoice = ClientTUI.getChoice();
-    	String result = processChoice(usersChoice);
-    	
-    	while (result != CommunicationStrings.EXIT) {
-            usersChoice = ClientTUI.getChoice();
-            result = processChoice(usersChoice);
-    	} 
-    }
-    
-	public String processChoice(String usersChoice) {
-		if(usersChoice.equals(CommunicationStrings.UPLOAD)) {
-			uploader.letClientUploadFile();
-			return CommunicationStrings.UPLOAD;
-		} else if(usersChoice.equals(CommunicationStrings.LIST)) {
-			listAsker.letClientAskForList();
-			return CommunicationStrings.LIST;
-		} else if(usersChoice.equals(CommunicationStrings.DOWNLOAD)) {
-			downloader.letClientDownloadFile();
-			return CommunicationStrings.DOWNLOAD;
-		} else if(usersChoice.equals(CommunicationStrings.WITHDRAW)) {
-			remover.letClientRemoveFile();
-			return CommunicationStrings.WITHDRAW;
-		} else if(usersChoice.equals(CommunicationStrings.REPLACE)) {
-			replacer.letClientReplaceFile();
-			return CommunicationStrings.REPLACE;
-		} else if(usersChoice.equals(CommunicationStrings.PAUSE)) {
-			pauser.letClientPauseDownload();
-			return CommunicationStrings.PAUSE;
-		} else if(usersChoice.equals(CommunicationStrings.CONTINUE)) {
-			resumer.letClientResumeDownload();
-			return CommunicationStrings.CONTINUE;
-		} else if(usersChoice.equals(CommunicationStrings.EXIT)) {
-			return CommunicationStrings.EXIT;
+		
+		while (!usersChoice.equals(CommunicationStrings.EXIT)) {
+			try {
+				if(usersChoice.equals(CommunicationStrings.UPLOAD)) {
+					uploader.letClientUploadFile();
+				} else if(usersChoice.equals(CommunicationStrings.LIST)) {
+					listAsker.letClientAskForList();
+				} else if(usersChoice.equals(CommunicationStrings.DOWNLOAD)) {
+					downloader.letClientDownloadFile();
+				} else if(usersChoice.equals(CommunicationStrings.WITHDRAW)) {
+					remover.letClientRemoveFile();
+				} else if(usersChoice.equals(CommunicationStrings.REPLACE)) {
+					replacer.letClientReplaceFile();
+				} else if(usersChoice.equals(CommunicationStrings.PAUSE)) {
+					pauser.letClientPauseDownload();
+				} else if(usersChoice.equals(CommunicationStrings.CONTINUE)) {
+					resumer.letClientResumeDownload();
+				} else if(usersChoice.equals(CommunicationStrings.HELP)) {
+					printHelpMenu();
+				}
+			} catch (UserQuitToMainMenuException e) {
+			} catch (SocketTimeoutException e) {
+				ClientTUI.showMessage("Action was aborted as there was no response from the server.");
+			}
+			usersChoice = ClientTUI.getChoice();
 		}
-		printHelpMenu();
-		return CommunicationStrings.HELP;
-	}
+		terminator.endProgram();
+    }
 	
 	public void printHelpMenu() {
 		ClientTUI.showMessage("Type one of the following single characters, followed by hitting enter to execute the corresponding action.\n"

@@ -86,9 +86,27 @@ public class Server {
     	} else if (choice.equals(CommunicationStrings.CONTINUE)) {
     		serverHandlerDownloadingClient.resumeAThread(choicePacket);
     	} else if (choice.equals(CommunicationStrings.EXIT)) {
-    		done = true;
+    		sendResponseWithOnlyChoiceByte(choicePacket);
+    		serverHandlerDownloadingClient.stopAllThreads();
+    		serverHandlerUploadingClient.stopAllThreads();
+    		serverHandlerReplacingClient.stopAllThreads();
     	}
-    	
+    }
+    
+    public void sendResponseWithOnlyChoiceByte(final DatagramPacket packet) {
+    	try {
+    		final InetAddress clientAddress = packet.getAddress();
+	    	final int clientPort = packet.getPort();
+	    	byte[] choiceByte = Arrays.copyOfRange(packet.getData(), 0, 1);
+	    	new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort);
+	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
+	    	thisCommunicationsSocket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
+	    	thisCommunicationsSocket.close();
+		} catch (SocketException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 }
 

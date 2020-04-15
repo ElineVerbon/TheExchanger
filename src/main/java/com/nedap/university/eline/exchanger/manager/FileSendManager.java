@@ -10,7 +10,7 @@ import com.nedap.university.eline.exchanger.packet.FilePacketMaker;
 import com.nedap.university.eline.exchanger.packet.FilePacketMaker.CanSend;
 import com.nedap.university.eline.exchanger.window.SendingWindow;
 
-public class FileSendManager{
+public class FileSendManager implements Runnable {
     
 	private FilePacketMaker filePacketMaker;
 	private AckReceiver ackReceiver;
@@ -20,6 +20,7 @@ public class FileSendManager{
 	public enum sendReason { PRIMARY, DACK, TIMER }
 	private boolean noMorePackets = false;
 	private boolean lastAck = false;
+	private volatile boolean flag = true;
 	
     public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket, final String fileName) {
     	this.socket = socket;
@@ -31,16 +32,13 @@ public class FileSendManager{
 		this.fileName = fileName;
     }
     
-	public void sendFile() {
+	public void run() {
 		System.out.println("File " + fileName + " is being uploaded.");
 		
-		new Thread(() -> checkAcks()).start();
+		Thread ackThread = new Thread(() -> checkAcks());
+		ackThread.start();
 		
-		sendPackets();
-    }
-	
-	public void sendPackets() {
-		while(!noMorePackets) {
+		while(flag && !noMorePackets) {
 			if (Thread.interrupted()) {
 				//was interrupted by the user: wait under user wants to resume
 				try {
@@ -57,6 +55,10 @@ public class FileSendManager{
 				noMorePackets = true;
 			}  
 		}
+    }
+	
+	public void stopRunning() {
+		flag = false;
 	}
 	
 	public void waitABit() {
@@ -75,7 +77,11 @@ public class FileSendManager{
 	}
 	
     public void checkAcks() {
+    	
     	while (!lastAck) {
+    		if(Thread.interrupted()) {
+    			return;
+    		}
     		lastAck = ackReceiver.receiveAndProcessAck();
 	    } 
     	socket.close();

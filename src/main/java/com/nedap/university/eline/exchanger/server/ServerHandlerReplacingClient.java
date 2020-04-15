@@ -5,11 +5,19 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
 
 public class ServerHandlerReplacingClient {
+	
+	private List<FileReceiveManager> managers;
+	
+	public ServerHandlerReplacingClient() {
+		managers = new ArrayList<>();
+	}
 	
 	public void letUserReplaceFile(final DatagramPacket packet) {
 		try {
@@ -25,13 +33,24 @@ public class ServerHandlerReplacingClient {
 			File file = new File(Server.ACCESSIBLE_FOLDER + fileName);
 			file.delete();
 			
-//			String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/" + fileName;
-			String absoluteFilePath = "/home/pi/" + fileName;
-			new FileReceiveManager(thisCommunicationsSocket, clientAddress, clientPort, absoluteFilePath, fileName).receiveFile();
-	    	
+			String absoluteFilePath = Server.ACCESSIBLE_FOLDER + fileName;
+			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, clientAddress, clientPort, absoluteFilePath, fileName);
+			startAndSaveNewThreadToReceiveFile(manager);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-
+	
+	private void startAndSaveNewThreadToReceiveFile(final FileReceiveManager manager) {
+		Thread thread = new Thread(manager);
+		thread.start();
+		managers.add(manager);
+	}
+	
+    public void stopAllThreads() {
+    	for (FileReceiveManager manager : managers) {
+    		manager.stopRunning();
+    	}
+    }
 }

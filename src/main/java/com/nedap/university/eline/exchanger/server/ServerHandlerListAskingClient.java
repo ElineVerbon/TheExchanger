@@ -2,7 +2,6 @@ package com.nedap.university.eline.exchanger.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -25,7 +24,7 @@ public class ServerHandlerListAskingClient {
 			
 			byte[] listBytes = getListOfFiles();
 			
-			new FileSendManager(listBytes, clientAddress, clientPort, thisCommunicationsSocket, "listOfFilesOnServer.txt").sendFile();
+			new FileSendManager(listBytes, clientAddress, clientPort, thisCommunicationsSocket, "listOfFilesOnServer.txt").run();
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

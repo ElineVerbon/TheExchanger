@@ -4,11 +4,19 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
 
 public class ServerHandlerUploadingClient {
+	
+	private List<FileReceiveManager> managers;
+	
+	public ServerHandlerUploadingClient() {
+		managers = new ArrayList<>();
+	}
 
     public void letUserUploadFile(final DatagramPacket packet) {
     	try {
@@ -22,12 +30,25 @@ public class ServerHandlerUploadingClient {
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
 			
-//			String absoluteFilePath = System.getProperty ("user.home") + "/Desktop/" + fileName;
-			String absoluteFilePath = "/home/pi/" + fileName;
-			new FileReceiveManager(thisCommunicationsSocket, clientAddress, clientPort, absoluteFilePath, fileName).receiveFile();
-	    	
+			String absoluteFilePath = Server.ACCESSIBLE_FOLDER;
+			
+			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, clientAddress, 
+					clientPort, absoluteFilePath, fileName);
+			startAndSaveNewThreadToReceiveFile(fileName, manager);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+    }
+    
+    private void startAndSaveNewThreadToReceiveFile(final String fileName, final FileReceiveManager manager) {
+		Thread thread = new Thread(manager);
+		thread.start();
+		managers.add(manager);
+	}
+    
+    public void stopAllThreads() {
+    	for (FileReceiveManager manager : managers) {
+    		manager.stopRunning();
+    	}
     }
 }

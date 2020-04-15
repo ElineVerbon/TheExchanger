@@ -21,10 +21,12 @@ public class ServerHandlerDownloadingClient {
 	
 	private Map<String, Thread> startedThreads;
 	private List<String> filesWithAnAnterruptedThread;
+	private List<FileSendManager> managers;
 	
 	public ServerHandlerDownloadingClient() {
 		this.startedThreads = new HashMap<>();
 		this.filesWithAnAnterruptedThread = new ArrayList<>();
+		managers = new ArrayList<>();
 	}
 
 	public void letUserDownloadFile(final DatagramPacket packet) {
@@ -53,9 +55,10 @@ public class ServerHandlerDownloadingClient {
 	}
 	
 	public void startAndSaveNewThreadToSendFile(final String fileName, final FileSendManager manager) {
-		Thread thread = new Thread(() -> manager.sendFile());
+		Thread thread = new Thread(manager);
 		thread.start();
 		startedThreads.put(fileName, thread);
+		managers.add(manager);
 	}
 	
 	public byte[] getListOfFiles() {
@@ -141,4 +144,10 @@ public class ServerHandlerDownloadingClient {
 			e.printStackTrace();
 		}
 	}
+	
+	 public void stopAllThreads() {
+	    	for (FileSendManager manager : managers) {
+	    		manager.stopRunning();
+	    	}
+	    }
 }

@@ -1,9 +1,7 @@
 package com.nedap.university.eline.exchanger.manager;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -17,7 +15,7 @@ import com.nedap.university.eline.exchanger.packet.FilePacketContents;
 import com.nedap.university.eline.exchanger.packet.AckPacketMaker;
 import com.nedap.university.eline.exchanger.window.ReceivingWindow;
 
-public class FileReceiveManager {
+public class FileReceiveManager implements Runnable {
 	
 	private ReceivingWindow receivingWindow;
 	private ReceivedFilePacketTracker packetTracker;
@@ -33,8 +31,10 @@ public class FileReceiveManager {
 	private String absoluteFilePathDir;
 	private String fileName;
 	private DatagramSocket socket;
+	private volatile boolean flag = true;
 	
-	public FileReceiveManager(final DatagramSocket socket, final InetAddress sourceAddress, final int sourcePort, final String absoluteFilePathDir, final String fileName) {
+	public FileReceiveManager(final DatagramSocket socket, final InetAddress sourceAddress, final int sourcePort, 
+			final String absoluteFilePathDir, final String fileName) {
 		this.socket = socket;
 		this.receivingWindow= new ReceivingWindow();
 		this.packetTracker = new ReceivedFilePacketTracker();
@@ -46,22 +46,21 @@ public class FileReceiveManager {
 		this.fileName = fileName;
     }
 	
-	public void receiveFile() {
+	public void run() {
 		System.out.println("Receiving the file " + fileName + ".");
 		
-		receivePackets();
-	}
-	
-	public void receivePackets() {
-		while(!recAllPackets) {
-			final DatagramPacket packet = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
-			processPacket(new FilePacketContents(packet));
+		while(flag && !recAllPackets) {
+				final DatagramPacket packet = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
+				processPacket(new FilePacketContents(packet));
 		}
-		
 		waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
 		
 		saveFile();
 		socket.close();
+	}
+	
+	public void stopRunning() {
+		flag = false;
 	}
 	
 	public void waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
@@ -154,8 +153,6 @@ public class FileReceiveManager {
 		
 			for(Map.Entry<Integer, byte[]> entry : packetTracker.getAllReceivedPackets().entrySet()) {
 				randomAccessFile.write(entry.getValue());
-				//TODO: make into something like below
-				//receivedPackets.entrySet().stream().map(element -> element.getValue()).collect(collector)
 			}
 			
 			if (overWritten) {
