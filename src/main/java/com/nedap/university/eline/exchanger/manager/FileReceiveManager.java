@@ -144,7 +144,6 @@ public class FileReceiveManager implements Runnable {
     	
         try {
         	final String absoluteFilePath = absoluteFilePathDir + File.separator + fileName;
-        	System.out.println(absoluteFilePath);
         	file = new File(absoluteFilePath);
 			if(!file.createNewFile()){
 				overWritten = true;

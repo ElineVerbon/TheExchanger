@@ -62,7 +62,6 @@ public class ClientListAsker {
 			ClientTUI.showMessage("No files present on the server.");
 			return "";
 		}
-		ClientTUI.showMessage(fileText);
 		String[] fileTextSplitByFile = fileText.split(CommunicationStrings.SEPARATION_TWO_FILES);
 		return printList(fileTextSplitByFile);
 	}

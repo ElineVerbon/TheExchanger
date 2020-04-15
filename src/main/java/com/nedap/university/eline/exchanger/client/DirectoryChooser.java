@@ -13,12 +13,14 @@ public class DirectoryChooser {
 	private String directory;
 	private String savedPath;
 	private boolean dirSaved;
+	private boolean saidYesToOverwrite;
 	
 	public DirectoryChooser() {
 		this.absolutePath = "";
 		this.directory = "";
 		this.savedPath = "";
 		this.dirSaved = false;
+		this.saidYesToOverwrite = false;
 	}
 	
 	public String getAbsolutePath() {
@@ -40,7 +42,7 @@ public class DirectoryChooser {
 				
 				absolutePath = directory + File.separator + fileName;
 				
-				if (Files.exists(Paths.get(absolutePath))) {
+				if (Files.exists(Paths.get(absolutePath)) && !saidYesToOverwrite) {
 					if (!ClientTUI.getBoolean("The file " + absolutePath + " already exists, do you want to replace it? (y / n)")) {
 						continue;
 					}
@@ -48,6 +50,7 @@ public class DirectoryChooser {
 				}
 				correctInput = true;
 			}
+			saidYesToOverwrite = false;
 			savedPath = directory;
 			dirSaved = true;
 		} catch (IOException e) {
@@ -60,6 +63,7 @@ public class DirectoryChooser {
     	
     	if (dirSaved) {
 			if (ClientTUI.getBoolean("Do you want to save the file to the previous path (" + savedPath + ")? (y / n)")) {
+				saidYesToOverwrite = true;
 				return savedPath;
 			}
 		}

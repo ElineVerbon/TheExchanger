@@ -36,11 +36,11 @@ public class Client {
     	ClientTUI.showMessage("Client is starting up, please be patient.");
     	
 		try {
-//			final InetAddress serverAddress = InetAddress.getLocalHost();
+			final InetAddress serverAddress = InetAddress.getLocalHost();
 			final int generalServerPort = 8080;
-			final String hostname = "nu-pi-stefan";
-			final InetAddress serverAddress = InetAddress.getByName(hostname);
-			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
+//			final String hostname = "nu-pi-stefan";
+//			final InetAddress serverAddress = InetAddress.getByName(hostname);
+//			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
 			
 			ChoiceCommunicator communicator = new ChoiceCommunicator(generalServerPort, serverAddress);
 			ClientListAsker listAsker = new ClientListAsker(communicator);
