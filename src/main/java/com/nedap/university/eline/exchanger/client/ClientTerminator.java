@@ -1,7 +1,6 @@
 package com.nedap.university.eline.exchanger.client;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
