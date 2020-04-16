@@ -58,7 +58,7 @@ public class ChoiceCommunicator {
 		DatagramPacket response = null;
     	try {
     		response = new DatagramPacket(new byte[bufferSize], bufferSize);
-			socket.setSoTimeout(1000);
+			socket.setSoTimeout(5000);
 			socket.receive(response);
 		} catch (SocketTimeoutException e) {
 			throw new SocketTimeoutException();

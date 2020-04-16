@@ -37,7 +37,7 @@ public class FilePacketMaker {
 		}
 	}
 	
-	public CanSend canSendNextPacket() {
+	private CanSend canSendNextPacket() {
 		if(((sendingWindow.getPacketNumber() + 1) * FilePacketContents.DATASIZE) >= bytes.length) {
 			return CanSend.NO_MORE_PACKETS;
 		} else if(!sendingWindow.isComingSeqNumInWindow()) {
@@ -47,12 +47,12 @@ public class FilePacketMaker {
 		}
 	}
 	
-	public void makeAndSendPacket() {
+	private void makeAndSendPacket() {
 		DatagramPacket packet = makeDataPacket();
 		sendFilePacket(packet, sendReason.PRIMARY);
 	}
 	
-	public DatagramPacket makeDataPacket() {
+	private DatagramPacket makeDataPacket() {
 		sendingWindow.incrementPacketNumber();
 		
 		final int packetNumber = sendingWindow.getPacketNumber();
@@ -67,32 +67,42 @@ public class FilePacketMaker {
 		return new DatagramPacket(packetBytes, packetBytes.length, destAddress, destPort);
 	}
 	
-	public byte[] makeByteArrayForPacket(final int packetNumber, final int seqNum, final int lastPacket) {
-		byte[] header = makeHeader(seqNum, lastPacket);
+	private byte[] makeByteArrayForPacket(final int packetNumber, final int seqNum, final int lastPacket) {
+		byte[] header = makeHeaderWithoutChecksum(seqNum, lastPacket);
 		byte[] body = makeBody(packetNumber);
 		
-		byte[] packetBytes = new byte[header.length + body.length];
-		System.arraycopy(header, 0, packetBytes, 0, header.length);
-		System.arraycopy(body, 0, packetBytes, header.length, body.length);
+		byte[] packetBytesWithoutChecksum = new byte[header.length + body.length];
+		System.arraycopy(header, 0, packetBytesWithoutChecksum, 0, header.length);
+		System.arraycopy(body, 0, packetBytesWithoutChecksum, header.length, body.length);
+		
+		return addChecksum(packetBytesWithoutChecksum);
+	}
+	
+	private byte[] addChecksum(final byte[] bytes) {
+		byte[] checksumBytes = ChecksumGenerator.getCheckSum(bytes);
+		byte[] packetBytes = new byte[ChecksumGenerator.CHECKSUM_LENGTH + bytes.length];
+		System.arraycopy(checksumBytes, 0, packetBytes, 0, checksumBytes.length);
+		System.arraycopy(bytes, 0, packetBytes, ChecksumGenerator.CHECKSUM_LENGTH, bytes.length);
+		
 		return packetBytes;
 	}
 
-	public byte[] makeHeader(final int LFS, final int lastPacket) {
-		byte[] seqNumInBytes = SequenceNumberCalculator.turnSeqNumIntoBytes(LFS);
+	private byte[] makeHeaderWithoutChecksum(final int seqNumber, final int lastPacket) {
+		byte[] seqNumInBytes = SequenceNumberCalculator.turnSeqNumIntoBytes(seqNumber);
 		
-		byte[] headerBytes = new byte[FilePacketContents.HEADERSIZE];
+		byte[] headerBytes = new byte[FilePacketContents.HEADERSIZE - ChecksumGenerator.CHECKSUM_LENGTH];
 		System.arraycopy(seqNumInBytes, 0, headerBytes, 0, SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH);
 		headerBytes[SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH] = (byte) lastPacket;
 		
 		return headerBytes;
 	}
 	
-	public byte[] makeBody(final int packetNumber) {
+	private byte[] makeBody(final int packetNumber) {
 		int to = Math.min(packetNumber * FilePacketContents.DATASIZE + FilePacketContents.DATASIZE, bytes.length);
 		return Arrays.copyOfRange(bytes, packetNumber * FilePacketContents.DATASIZE, to);
 	}	
 	
-	public void sendFilePacket(final DatagramPacket packet, final sendReason reason) {
+	private void sendFilePacket(final DatagramPacket packet, final sendReason reason) {
 		synchronized(sendingWindow) {
 			final int seqNum = sendingWindow.getSeqNumOneGreaterThanLastSent();
 			filePacketSender.sendFilePacket(packet, reason, seqNum);

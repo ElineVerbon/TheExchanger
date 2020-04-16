@@ -5,11 +5,12 @@ import java.util.Arrays;
 
 public class FilePacketContents extends AbstractPacketContents {
 	
-	public final static int HEADERSIZE = SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH + 1;
+	public final static int HEADERSIZE = SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH + 1 + ChecksumGenerator.CHECKSUM_LENGTH;
 	public final static int DATASIZE = 2500;
 	private byte[] bytes;
 	private int seqNumber;
 	private boolean lastPacket;
+	private byte[] checksum;
 	private byte[] dataBytes;
 	
 	public FilePacketContents(final DatagramPacket packet) {
@@ -20,10 +21,13 @@ public class FilePacketContents extends AbstractPacketContents {
 		}
 		
 		final byte[] headerBytes = Arrays.copyOf(bytes, HEADERSIZE);
-		final byte[] seqBytes = Arrays.copyOf(headerBytes, SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH);
+		checksum = Arrays.copyOfRange(headerBytes, 0, ChecksumGenerator.CHECKSUM_LENGTH);
 		
+		final byte[] seqBytes = Arrays.copyOfRange(headerBytes, ChecksumGenerator.CHECKSUM_LENGTH, 
+				ChecksumGenerator.CHECKSUM_LENGTH + SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH);
 		seqNumber = SequenceNumberCalculator.getSeqNumFromBytes(seqBytes);
-		lastPacket = getBooleanFromInt(headerBytes[SequenceNumberCalculator.SEQ_NUM_BYTE_LENGTH]);
+		lastPacket = getBooleanFromInt(headerBytes[HEADERSIZE-1]);
+		
 		dataBytes = Arrays.copyOfRange(bytes, HEADERSIZE, bytes.length);
 	}
 	
@@ -33,6 +37,10 @@ public class FilePacketContents extends AbstractPacketContents {
 	
 	public byte[] getBytes() {
 		return bytes;
+	}
+	
+	public byte[] getChecksum() {
+		return checksum;
 	}
 	
 	public int getSeqNum() {

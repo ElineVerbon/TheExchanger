@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 import java.util.Map;
 
 import com.nedap.university.eline.exchanger.executor.AckSender;
@@ -15,6 +16,7 @@ import com.nedap.university.eline.exchanger.executor.ReceivedFilePacketTracker;
 import com.nedap.university.eline.exchanger.executor.Receiver;
 import com.nedap.university.eline.exchanger.packet.FilePacketContents;
 import com.nedap.university.eline.exchanger.packet.AckPacketMaker;
+import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
 import com.nedap.university.eline.exchanger.window.ReceivingWindow;
 
 public class FileReceiveManager implements Runnable {
@@ -98,13 +100,17 @@ public class FileReceiveManager implements Runnable {
 	
 	private void processPacket(final FilePacketContents packet) {
 		
-		if(!receivingWindow.isInWindow(packet.getSeqNum())) {
+		if (!isPacketIntact(packet)) {
+			return;
+		}
+		
+		final int seqNumber = packet.getSeqNum();
+		if(!receivingWindow.isInWindow(seqNumber)) {
 			sendDuplicateAck();
 			return;
 		}
 		
-		final int packetNumber = getPacketNumber(packet.getSeqNum());
-		
+		final int packetNumber = getPacketNumber(seqNumber);
 //		System.out.println("Received packet with seqNum " + packet.getSeqNum() + " and PacketNum " + packetNumber);
 		
 		packetTracker.savePacket(packet.getDataBytes(), packetNumber);
@@ -112,13 +118,21 @@ public class FileReceiveManager implements Runnable {
 			recLastPacket = true;
 		}
 		
-		if (packet.getSeqNum() != receivingWindow.getSubsequentLargestConsecutivePacketReceived()) {
+		if (seqNumber != receivingWindow.getSubsequentLargestConsecutivePacketReceived()) {
 			sendDuplicateAck();
 		} else {
 			setLFRToHighestConsAck(packetNumber);
 			sendAck();
-			lastAckedSeqNumPacNumPair = new int[] { packet.getSeqNum(), packetNumber };
+			lastAckedSeqNumPacNumPair = new int[] { seqNumber, packetNumber };
 		}
+	}
+	
+	private boolean isPacketIntact(final FilePacketContents packet) {
+		final byte[] givenChecksum = packet.getChecksum();
+		final byte[] bytes = packet.getBytes();
+		final byte[] bytesWithoutChecksum = Arrays.copyOfRange(bytes, ChecksumGenerator.CHECKSUM_LENGTH, bytes.length);
+		final byte[] calculatedChecksum = ChecksumGenerator.getCheckSum(bytesWithoutChecksum);
+		return (Arrays.equals(givenChecksum, calculatedChecksum));
 	}
 	
 	private int getPacketNumber(final int seqNumber) {
