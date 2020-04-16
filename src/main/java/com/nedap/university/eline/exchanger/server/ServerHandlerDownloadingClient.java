@@ -46,7 +46,8 @@ public class ServerHandlerDownloadingClient {
 			
 			thisCommunicationsSocket.send(new DatagramPacket(checksum, checksum.length, clientAddress, clientPort));
 			
-			FileSendManager manager = new FileSendManager(fileBytes, clientAddress, clientPort, thisCommunicationsSocket, fileName);
+			FileSendManager manager = new FileSendManager(fileBytes, clientAddress, clientPort, thisCommunicationsSocket, 
+					fileName, "download");
 			startAndSaveNewThreadToSendFile(fileName, manager);
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
@@ -140,5 +141,17 @@ public class ServerHandlerDownloadingClient {
     	for (FileSendManager manager : managers) {
     		manager.stopRunning();
     	}
+    	managers = new ArrayList<>();
     }
+	 
+	public String getStatistics() {
+		String theStatistics = "";
+		
+		for (FileSendManager manager : managers) {
+			if (manager.isDone()) {
+				theStatistics = theStatistics + CommunicationStrings.SEPARATION_TWO_FILES + manager.getStatistics();
+			}
+		}
+		return theStatistics;
+	}
 }

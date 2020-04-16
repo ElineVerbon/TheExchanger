@@ -4,6 +4,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 
+import com.nedap.university.eline.exchanger.client.TransferStatistics;
 import com.nedap.university.eline.exchanger.executor.AckReceiver;
 import com.nedap.university.eline.exchanger.executor.FilePacketSender;
 import com.nedap.university.eline.exchanger.executor.SentFilePacketTracker;
@@ -18,13 +19,21 @@ public class FileSendManager implements Runnable {
 	private String fileName;
 	private DatagramSocket socket;
 	
+	private String result;
+	private long startTime;
+	private long stopTime;
+	private String transferType;
+	private boolean done;
+	private int fileSize;
+	
 	public enum sendReason { PRIMARY, DACK, TIMER }
 	private boolean noMorePackets = false;
 	private boolean lastAck = false;
 	private volatile boolean flag = true;
 	private Thread ackThread;
 	
-    public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket, final String fileName) {
+    public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket, 
+    		final String fileName, final String transferType) {
     	this.socket = socket;
     	SendingWindow sendingWindow = new SendingWindow();
     	SentFilePacketTracker packetTracker = new SentFilePacketTracker();
@@ -32,10 +41,14 @@ public class FileSendManager implements Runnable {
 		this.filePacketMaker = new FilePacketMaker(bytes, destAddress, destPort, sendingWindow, filePacketSender);
 		this.ackReceiver = new AckReceiver(socket, packetTracker, sendingWindow, filePacketSender);
 		this.fileName = fileName;
+		this.transferType = transferType;
+		this.fileSize = bytes.length;
     }
     
 	public void run() {
 		System.out.println("File " + fileName + " is being uploaded.");
+		
+		startTime = System.nanoTime();
 		
 		ackThread = new Thread(() -> checkAcks());
 		ackThread.start();
@@ -81,6 +94,9 @@ public class FileSendManager implements Runnable {
 			}
 	    } 
     	socket.close();
+    	
+    	done = true;
+    	stopTime = System.nanoTime();
     	System.out.println("> File " + fileName + " was successfully uploaded!");
     }
     
@@ -102,5 +118,21 @@ public class FileSendManager implements Runnable {
 			}
 		} catch (InterruptedException e2) {
 		}
+    }
+    
+    public boolean isDone() {
+    	return done;
+    }
+    
+    public String getStatistics() {
+    	if (!done) {
+    		return "Still working on this transfer!";
+    	}
+    	String elapsedTime = TransferStatistics.getElapsedTime(startTime, stopTime);
+    	int numberRetransmissions = filePacketMaker.getNumberRetransmissions();
+		String result = 
+				String.format("%-40s %-20s %-15s %-20s %-20s\n", fileName, "| " + fileSize, "| " + transferType, "| " + elapsedTime, "| " + numberRetransmissions);
+		
+		return result;
     }
 }

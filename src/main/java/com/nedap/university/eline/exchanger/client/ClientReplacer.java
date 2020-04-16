@@ -6,6 +6,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.exceptions.UserQuitToMainMenuException;
@@ -16,11 +18,13 @@ public class ClientReplacer {
 	private ClientListAsker listAsker;
 	private ChoiceCommunicator communicator;
 	private FileChooser fileChooser;
+	private List<FileSendManager> managers;
 	
 	public ClientReplacer(final ChoiceCommunicator communicator, final ClientListAsker asker) {
 		this.listAsker = asker;
 		this.communicator = communicator;
 		this.fileChooser = new FileChooser();
+		this.managers = new ArrayList<>();
 	}
 	
 	public void letClientReplaceFile() throws UserQuitToMainMenuException {
@@ -40,7 +44,8 @@ public class ClientReplacer {
 			final String fileNamesForInResultString = toBeUploadedFile.getName() + " to replace " + fileName;
 			final byte[] fileBytes = Files.readAllBytes(toBeUploadedFile.toPath());
 			
-			FileSendManager manager = new FileSendManager(fileBytes, communicator.getServerAddress(), specificServerPort, thisCommunicationsSocket, fileNamesForInResultString);
+			FileSendManager manager = new FileSendManager(fileBytes, communicator.getServerAddress(), specificServerPort, 
+					thisCommunicationsSocket, fileNamesForInResultString, "upload");
 			startNewThreadToSendFile(manager);
 		} catch (SocketException e) {
 			ClientTUI.showMessage("Opening a socket to download a file failed.");
@@ -53,5 +58,16 @@ public class ClientReplacer {
 	private void startNewThreadToSendFile(final FileSendManager manager) {
 		Thread thread = new Thread(manager);
 		thread.start();
+	}
+	
+	public String getStatistics() {
+		String theStatistics = "";
+		
+		for (FileSendManager manager : managers) {
+			if (manager.isDone()) {
+				theStatistics = theStatistics + CommunicationStrings.SEPARATION_TWO_FILES + manager.getStatistics();
+			}
+		}
+		return theStatistics;
 	}
 }

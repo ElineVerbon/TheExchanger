@@ -78,6 +78,27 @@ public class ClientDownloader {
 		}
 	}
 	
+	public String letClientGetStatistics() {
+		String statistics = "";
+		
+		try {
+			byte[] choiceIndicator = CommunicationStrings.toBytes(CommunicationStrings.STATISTICS);
+			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
+			DatagramPacket response = communicator.communicateChoiceToServerAndExpectLongerResponse(choiceIndicator, new byte[0], thisCommunicationsSocket);
+			
+			final byte[] statisticsInBytes = Arrays.copyOfRange(response.getData(), 0, response.getLength());
+			statistics = new String(statisticsInBytes);
+			
+			
+		} catch (SocketTimeoutException e) {
+			ClientTUI.showMessage("No response from the server when asking for the statistics.");
+		} catch (SocketException e) {
+			ClientTUI.showMessage("Opening a socket to get statistics failed.");
+		}
+		return statistics;
+		
+	}
+	
 	private void startAndSaveNewThreadToReceiveFile(final String fileName, final FileReceiveManager manager) {
 		Thread thread = new Thread(manager);
 		thread.start();
@@ -203,4 +224,5 @@ public class ClientDownloader {
 			}
 		}
 	}
+	
 }

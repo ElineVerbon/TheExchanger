@@ -85,6 +85,9 @@ public class Server {
     		serverHandlerDownloadingClient.pauseADownload(choicePacket);
     	} else if (choice.equals(CommunicationStrings.CONTINUE)) {
     		serverHandlerDownloadingClient.resumeADownload(choicePacket);
+    	} else if (choice.equals(CommunicationStrings.STATISTICS)) {
+    		String statistics = serverHandlerDownloadingClient.getStatistics();
+    		sendResponse(choicePacket, statistics);
     	} else if (choice.equals(CommunicationStrings.EXIT)) {
     		sendResponseWithOnlyChoiceByte(choicePacket);
     		serverHandlerDownloadingClient.stopAllThreads();
@@ -98,9 +101,25 @@ public class Server {
     		final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();
 	    	byte[] choiceByte = Arrays.copyOfRange(packet.getData(), 0, 1);
-	    	new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort);
 	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
 	    	thisCommunicationsSocket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
+	    	thisCommunicationsSocket.close();
+		} catch (SocketException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    private void sendResponse(final DatagramPacket packet, final String statistics) {
+    	try {
+    		final InetAddress clientAddress = packet.getAddress();
+	    	final int clientPort = packet.getPort();
+	    	
+	    	final byte[] statisticBytes = statistics.getBytes();
+	    	
+	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
+	    	thisCommunicationsSocket.send(new DatagramPacket(statisticBytes, statisticBytes.length, clientAddress, clientPort));
 	    	thisCommunicationsSocket.close();
 		} catch (SocketException e) {
 			e.printStackTrace();

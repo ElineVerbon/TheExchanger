@@ -100,4 +100,8 @@ public class FilePacketMaker {
 			sendingWindow.incrementLastFrameSent();
 		}
     }
+	
+	public int getNumberRetransmissions() {
+		return filePacketSender.getNumberRetransmissions();
+	}
 }

@@ -73,6 +73,10 @@ public class Client {
 					downloader.letClientPauseDownload();
 				} else if(usersChoice.equals(CommunicationStrings.CONTINUE)) {
 					downloader.letClientResumeDownload();
+				} else if(usersChoice.equals(CommunicationStrings.STATISTICS)) {
+					String uploadStatistics = uploader.getStatistics() + replacer.getStatistics();
+					String downloadStatistics = downloader.letClientGetStatistics();
+					TransferStatistics.printStatistics(uploadStatistics, downloadStatistics);
 				} else if(usersChoice.equals(CommunicationStrings.HELP)) {
 					ClientTUI.printHelpMenu();
 				}

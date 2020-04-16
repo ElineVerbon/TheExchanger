@@ -14,6 +14,7 @@ public class CommunicationStrings {
 	public static final String EXIT = "e";
 	public static final String PAUSE = "p";
 	public static final String CONTINUE = "c";
+	public static final String STATISTICS = "s";
 	public static final String HELP = "h";
 	
 	//for pausing and resuming a download
@@ -32,6 +33,7 @@ public class CommunicationStrings {
 		possibleChoices.add(EXIT);
 		possibleChoices.add(PAUSE);
 		possibleChoices.add(CONTINUE);
+		possibleChoices.add(STATISTICS);
 		possibleChoices.add(HELP);
 		return possibleChoices;
 	}

@@ -25,7 +25,8 @@ public class ServerHandlerListAskingClient {
 	    	
 			thisCommunicationsSocket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
 			
-			new FileSendManager(listBytes, clientAddress, clientPort, thisCommunicationsSocket, "listOfFilesOnServer.txt").run();
+			new FileSendManager(listBytes, clientAddress, clientPort, thisCommunicationsSocket, 
+					"listOfFilesOnServer.txt", "download").run();
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

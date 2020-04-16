@@ -14,10 +14,12 @@ public class FilePacketSender extends AbstractSender{
 	public static final int timeOutTime = 2;
 	
 	private SentFilePacketTracker packetTracker;
+	private int numberRetransmissions;
 	
 	public FilePacketSender(final DatagramSocket socket, final SentFilePacketTracker packetTracker, final SendingWindow sendingWindow) {
 		super(socket);
 		this.packetTracker = packetTracker;
+		numberRetransmissions = 0;
 	}
 	
 	public void sendFilePacket(final DatagramPacket packet, final sendReason reason, final int seqNum) {
@@ -47,6 +49,7 @@ public class FilePacketSender extends AbstractSender{
 	    		DatagramPacket packet = packetTracker.getPreviouslySentPacket(seqNumber);
 	    		packetTracker.removePacket(seqNumber);
 	    		sendFilePacket(packet, sendReason.TIMER, seqNumber);
+	    		numberRetransmissions++;
 	    	}
     	}
     }
@@ -59,5 +62,9 @@ public class FilePacketSender extends AbstractSender{
 		} else if (reason == sendReason.TIMER) {
 			System.out.println("Sent packet with seqNumber " + seqNumber + " again because the timer expired.");
 		}
+    }
+    
+    public int getNumberRetransmissions() {
+    	return numberRetransmissions;
     }
 }
