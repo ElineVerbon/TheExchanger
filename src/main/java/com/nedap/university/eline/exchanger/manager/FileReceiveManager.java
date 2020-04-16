@@ -34,11 +34,12 @@ public class FileReceiveManager implements Runnable {
 	
 	private String absoluteFilePathDir;
 	private String fileName;
+	private byte[] checksum;
 	private DatagramSocket socket;
 	private volatile boolean flag = true;
 	
 	public FileReceiveManager(final DatagramSocket socket, final InetAddress sourceAddress, final int sourcePort, 
-			final String absoluteFilePathDir, final String fileName) {
+			final String absoluteFilePathDir, final String fileName, final byte[] checksum) {
 		this.socket = socket;
 		this.receivingWindow= new ReceivingWindow();
 		this.packetTracker = new ReceivedFilePacketTracker();
@@ -48,6 +49,7 @@ public class FileReceiveManager implements Runnable {
 		
 		this.absoluteFilePathDir = absoluteFilePathDir;
 		this.fileName = fileName;
+		this.checksum = checksum;
     }
 	
 	public void run() {
@@ -100,7 +102,7 @@ public class FileReceiveManager implements Runnable {
 	
 	private void processPacket(final FilePacketContents packet) {
 		
-		if (!isPacketIntact(packet)) {
+		if (!ChecksumGenerator.isPacketIntact(packet)) {
 			return;
 		}
 		
@@ -125,14 +127,6 @@ public class FileReceiveManager implements Runnable {
 			sendAck();
 			lastAckedSeqNumPacNumPair = new int[] { seqNumber, packetNumber };
 		}
-	}
-	
-	private boolean isPacketIntact(final FilePacketContents packet) {
-		final byte[] givenChecksum = packet.getChecksum();
-		final byte[] bytes = packet.getBytes();
-		final byte[] bytesWithoutChecksum = Arrays.copyOfRange(bytes, ChecksumGenerator.CHECKSUM_LENGTH, bytes.length);
-		final byte[] calculatedChecksum = ChecksumGenerator.getCheckSum(bytesWithoutChecksum);
-		return (Arrays.equals(givenChecksum, calculatedChecksum));
 	}
 	
 	private int getPacketNumber(final int seqNumber) {
@@ -192,17 +186,22 @@ public class FileReceiveManager implements Runnable {
 				randomAccessFile.write(entry.getValue());
 			}
 			
+			randomAccessFile.close();
+			
+			String intact = reportOnIntegrity(file);
+			
 			if (overWritten) {
 				System.out.println("> File " + fileName + " saved in " + file.getAbsolutePath() + ". "
-						+ "Note: there was already a file, it was overwritten!");
+						+ intact + "Note: there was already a file, it was overwritten!");
 			} else {
-				System.out.println("> File " + fileName + " saved in " + file.getAbsolutePath() + ".");
+				System.out.println("> File " + fileName + " saved in " + file.getAbsolutePath() + ". " + intact);
 			}
-			
-			randomAccessFile.close();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -214,5 +213,17 @@ public class FileReceiveManager implements Runnable {
 			}
 		} catch (InterruptedException e) {
 		}
+	}
+	
+	private String reportOnIntegrity(final File file) throws Exception {
+		String intact = "";
+		if (checksum == null) {
+			intact = "Integrity is not checked for the list of files";
+		} else {
+			final byte[] calculatedChecksum = ChecksumGenerator.createChecksumFromFile(file);
+			final boolean fileIntact = Arrays.equals(checksum, calculatedChecksum);
+			intact = fileIntact ? "The file was received intact! " : "The file was not received intact, please try to download again. ";
+		}
+		return intact;
 	}
 }

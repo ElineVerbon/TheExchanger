@@ -38,7 +38,7 @@ public class ClientListAsker {
 			final int specificServerPort = response.getPort();
 			
 			new FileReceiveManager(thisCommunicationsSocket, communicator.getServerAddress(), specificServerPort, 
-					directoryChooser.getDirectory(), "listOfFilesOnServer.txt").run();
+					directoryChooser.getDirectory(), "listOfFilesOnServer.txt", null).run();
 			
 			fileNames = printListOfFiles();
 			

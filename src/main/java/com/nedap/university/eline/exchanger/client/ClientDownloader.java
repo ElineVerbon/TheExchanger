@@ -5,6 +5,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,10 +63,12 @@ public class ClientDownloader {
 			directoryChooser.chooseDirectory("Please type the directory in which you want to save the downloaded file.", fileName);
 			
 			DatagramSocket thisCommunicationsSocket = new DatagramSocket();
-			DatagramPacket response = communicator.communicateChoiceToServer(choiceIndicator, fileNameBytes, thisCommunicationsSocket);
+			DatagramPacket response = communicator.communicateChoiceToServerAndExpectLongerResponse(choiceIndicator, fileNameBytes, thisCommunicationsSocket);
 			final int specificServerPort = response.getPort();
+			final byte[] checksum = Arrays.copyOfRange(response.getData(), 0, response.getLength());
 			
-			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, communicator.getServerAddress(), specificServerPort, directoryChooser.getDirectory(), fileName);
+			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, communicator.getServerAddress(), 
+					specificServerPort, directoryChooser.getDirectory(), fileName, checksum);
 			startAndSaveNewThreadToReceiveFile(fileName, manager);
 		} catch (SocketException e) {
 			ClientTUI.showMessage("Opening a socket to download a file failed.");

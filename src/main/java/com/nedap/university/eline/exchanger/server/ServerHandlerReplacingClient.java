@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
+import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
 
 public class ServerHandlerReplacingClient {
 	
@@ -24,7 +25,11 @@ public class ServerHandlerReplacingClient {
 		try {
     		final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();
-	    	byte[] choiceByte = Arrays.copyOfRange(packet.getData(), 0, 1);
+	    	
+	    	final byte[] allBytes = packet.getData();
+	    	final byte[] checksumBytes = Arrays.copyOf(allBytes, ChecksumGenerator.CHECKSUM_LENGTH);
+	    	
+	    	byte[] choiceByte = Arrays.copyOfRange(allBytes, ChecksumGenerator.CHECKSUM_LENGTH, ChecksumGenerator.CHECKSUM_LENGTH + 1);
 	    	new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort);
 	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
 			thisCommunicationsSocket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
@@ -35,7 +40,7 @@ public class ServerHandlerReplacingClient {
 			String absoluteFilePath = Server.ACCESSIBLE_FOLDER + fileName;
 			Files.deleteIfExists(Paths.get(absoluteFilePath));
 			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, 
-					clientAddress, clientPort, Server.ACCESSIBLE_FOLDER, fileName);
+					clientAddress, clientPort, Server.ACCESSIBLE_FOLDER, fileName, checksumBytes);
 			startAndSaveNewThreadToReceiveFile(manager);
 			
 		} catch (IOException e) {

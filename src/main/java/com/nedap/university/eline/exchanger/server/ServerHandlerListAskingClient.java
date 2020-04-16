@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
+import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
 
 public class ServerHandlerListAskingClient {
 
@@ -20,9 +21,10 @@ public class ServerHandlerListAskingClient {
 	    	byte[] choiceByte = Arrays.copyOfRange(packet.getData(), 0, 1);
 	    	new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort);
 	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
+	    	
+	    	byte[] listBytes = getListOfFiles();
+	    	
 			thisCommunicationsSocket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
-			
-			byte[] listBytes = getListOfFiles();
 			
 			new FileSendManager(listBytes, clientAddress, clientPort, thisCommunicationsSocket, "listOfFilesOnServer.txt").run();
 		} catch (SocketException e) {

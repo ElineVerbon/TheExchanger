@@ -2,10 +2,15 @@ package com.nedap.university.eline.exchanger.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +18,7 @@ import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.exceptions.DuplicateUploadException;
 import com.nedap.university.eline.exchanger.exceptions.UserQuitToMainMenuException;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
+import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
 
 public class ClientUploader {
 	
@@ -34,14 +40,14 @@ public class ClientUploader {
 			File toBeUploadedFile = fileChooser.getUserSelectedLocalFile("Please type in the absolute filepath of the file you want to upload.");
 			fileName = toBeUploadedFile.getName();
 			
-			//fileName returns null here!!
+			final byte[] checksum = ChecksumGenerator.createChecksumFromFile(toBeUploadedFile);
 			
-			byte[] fileNameBytes = fileName.getBytes("UTF-8");
+			byte[] fileNameBytes = fileName.getBytes();
 			
 			checkForDuplicateUpload();
 			
 			DatagramSocket thisCommunicationsSocket = new DatagramSocket();		
-			DatagramPacket response = communicator.communicateChoiceToServer(choiceIndicator, fileNameBytes, thisCommunicationsSocket);
+			DatagramPacket response = communicator.communicateChoiceToServerWithChecksum(choiceIndicator, fileNameBytes, checksum, thisCommunicationsSocket);
 			final int specificServerPort = response.getPort();
 			
 			final byte[] fileBytes = Files.readAllBytes(toBeUploadedFile.toPath());
@@ -55,6 +61,12 @@ public class ClientUploader {
 		} catch (DuplicateUploadException e) {
 			ClientTUI.showMessage("A thread is currently running to upload this file. The upload will not be started."
 					+ " You can upload it again once the currently running download is finished.");
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}	
     

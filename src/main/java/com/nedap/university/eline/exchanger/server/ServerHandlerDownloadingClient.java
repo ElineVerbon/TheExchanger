@@ -15,6 +15,7 @@ import java.util.Map;
 
 import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
+import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
 
 public class ServerHandlerDownloadingClient {
 	
@@ -35,12 +36,15 @@ public class ServerHandlerDownloadingClient {
 	    	byte[] choiceByte = Arrays.copyOfRange(packet.getData(), 0, 1);
 	    	new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort);
 	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
-			thisCommunicationsSocket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
 			
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
 			File file = new File(Server.ACCESSIBLE_FOLDER + fileName);
 			final byte[] fileBytes = Files.readAllBytes(file.toPath());
+			
+			final byte[] checksum = ChecksumGenerator.createChecksumFromFile(file);
+			
+			thisCommunicationsSocket.send(new DatagramPacket(checksum, checksum.length, clientAddress, clientPort));
 			
 			FileSendManager manager = new FileSendManager(fileBytes, clientAddress, clientPort, thisCommunicationsSocket, fileName);
 			startAndSaveNewThreadToSendFile(fileName, manager);
@@ -48,6 +52,9 @@ public class ServerHandlerDownloadingClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
+
 public class ChoiceCommunicator {
 	private int generalServerPort;
 	private InetAddress serverAddress;
@@ -32,7 +34,16 @@ public class ChoiceCommunicator {
     	return response;
     }
 	
-	public DatagramPacket communicateChoiceToServer(final byte[] choiceByte, final byte[] dataBytes, final DatagramSocket socket) throws SocketTimeoutException {
+	public DatagramPacket communicateChoiceToServerWithChecksum(final byte[] choiceByte, final byte[] dataBytes,
+			final byte[] checksumBytes, final DatagramSocket socket) throws SocketTimeoutException {
+    	DatagramPacket packet = makeDataPacketWithCheckSum(checksumBytes, choiceByte, dataBytes);
+    	sendToServer(packet, socket);
+    	DatagramPacket response = receivePacket(socket, 1);
+    	return response;
+    }
+	
+	public DatagramPacket communicateChoiceToServer(final byte[] choiceByte, final byte[] dataBytes, 
+			final DatagramSocket socket) throws SocketTimeoutException {
     	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes);
     	sendToServer(packet, socket);
     	DatagramPacket response = receivePacket(socket, 1);
@@ -46,7 +57,16 @@ public class ChoiceCommunicator {
 		return new DatagramPacket(packetBytes, packetBytes.length, serverAddress, generalServerPort);
 	}
     
-       private void sendToServer(DatagramPacket packet, DatagramSocket socket) {
+    private DatagramPacket makeDataPacketWithCheckSum(final byte[] checksum, final byte[] choiceByte, final byte[] dataBytes) {
+    	byte[] packetBytes = new byte[checksum.length + dataBytes.length + choiceByte.length];
+		System.arraycopy(choiceByte, 0, packetBytes, 0, choiceByte.length);
+		System.arraycopy(checksum, 0, packetBytes, 1, checksum.length);
+		System.arraycopy(dataBytes, 0, packetBytes, checksum.length + choiceByte.length, dataBytes.length);
+		
+		return new DatagramPacket(packetBytes, packetBytes.length, serverAddress, generalServerPort);
+    }
+    
+    private void sendToServer(DatagramPacket packet, DatagramSocket socket) {
     	try {
 			socket.send(packet);
 		} catch (IOException e) {

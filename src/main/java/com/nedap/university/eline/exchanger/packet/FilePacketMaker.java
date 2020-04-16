@@ -75,16 +75,7 @@ public class FilePacketMaker {
 		System.arraycopy(header, 0, packetBytesWithoutChecksum, 0, header.length);
 		System.arraycopy(body, 0, packetBytesWithoutChecksum, header.length, body.length);
 		
-		return addChecksum(packetBytesWithoutChecksum);
-	}
-	
-	private byte[] addChecksum(final byte[] bytes) {
-		byte[] checksumBytes = ChecksumGenerator.getCheckSum(bytes);
-		byte[] packetBytes = new byte[ChecksumGenerator.CHECKSUM_LENGTH + bytes.length];
-		System.arraycopy(checksumBytes, 0, packetBytes, 0, checksumBytes.length);
-		System.arraycopy(bytes, 0, packetBytes, ChecksumGenerator.CHECKSUM_LENGTH, bytes.length);
-		
-		return packetBytes;
+		return ChecksumGenerator.addChecksumToPacketByte(packetBytesWithoutChecksum);
 	}
 
 	private byte[] makeHeaderWithoutChecksum(final int seqNumber, final int lastPacket) {

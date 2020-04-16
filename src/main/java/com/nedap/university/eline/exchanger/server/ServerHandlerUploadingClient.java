@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.nedap.university.eline.exchanger.manager.FileReceiveManager;
+import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
 
 public class ServerHandlerUploadingClient {
 	
@@ -22,18 +23,14 @@ public class ServerHandlerUploadingClient {
     	try {
     		final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();
-	    	byte[] choiceByte = Arrays.copyOfRange(packet.getData(), 0, 1);
-	    	new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort);
+	    	final byte[] checksumBytes = getChecksum(packet);
+	    	final String fileName = getFileName(packet);
+	    	
 	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
-			thisCommunicationsSocket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
-			
-			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
-			String fileName = new String(fileNameBytes);
-			
-			String absoluteFilePath = Server.ACCESSIBLE_FOLDER;
+	    	makeAndSendConfirmationToClient(packet.getData(), clientAddress, clientPort, thisCommunicationsSocket);
 			
 			FileReceiveManager manager = new FileReceiveManager(thisCommunicationsSocket, clientAddress, 
-					clientPort, absoluteFilePath, fileName);
+					clientPort, Server.ACCESSIBLE_FOLDER, fileName, checksumBytes);
 			startAndSaveNewThreadToReceiveFile(fileName, manager);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -50,5 +47,29 @@ public class ServerHandlerUploadingClient {
     	for (FileReceiveManager manager : managers) {
     		manager.stopRunning();
     	}
+    }
+    
+    private byte[] getChecksum(final DatagramPacket packet) {
+    	final byte[] allBytes = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+    	final byte[] checksumBytes = Arrays.copyOfRange(allBytes, 1, 1 + ChecksumGenerator.CHECKSUM_LENGTH);
+    	
+    	return checksumBytes;
+    }
+    
+    private String getFileName(final DatagramPacket packet) {
+    	byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1 + ChecksumGenerator.CHECKSUM_LENGTH, packet.getLength());
+		final String fileName = new String(fileNameBytes);
+		return fileName;
+    }
+    
+    private void makeAndSendConfirmationToClient(final byte[] allBytes, InetAddress clientAddress, final int clientPort, 
+    		final DatagramSocket socket) {
+    	byte[] choiceByte = Arrays.copyOfRange(allBytes, ChecksumGenerator.CHECKSUM_LENGTH, ChecksumGenerator.CHECKSUM_LENGTH + 1);
+    	new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort);
+		try {
+			socket.send(new DatagramPacket(choiceByte, choiceByte.length, clientAddress, clientPort));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 }

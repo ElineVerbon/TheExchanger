@@ -55,18 +55,11 @@ task status {
     }
 }
 
-task executeClient(type:JavaExec) {
-	classpath = sourceSets.main.runtimeClasspath
-	standardInput = System.in
-	main = "com.nedap.university.eline.exchanger.client.Client"
-}
-
 task deploy {
     doLast {
         ssh.run {
             session(remotes.pi) {
             	execute "mkdir -p /home/pi/accessibleFolder/"
-            	execute "mkdir -p /home/pi/tempFolder/"
                 put from: "${project.rootDir}/build/libs/NUM2-${version}.jar", into: "/home/pi/NUM2.jar"
                 execute 'sudo systemctl restart num2.service'
             }
@@ -75,4 +68,3 @@ task deploy {
 }
 
 deploy.dependsOn jar
-executeClient.dependsOn jar
