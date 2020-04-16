@@ -2,6 +2,7 @@ package com.nedap.university.eline.exchanger.manager;
 
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 
 import com.nedap.university.eline.exchanger.executor.AckReceiver;
 import com.nedap.university.eline.exchanger.executor.FilePacketSender;
@@ -21,6 +22,7 @@ public class FileSendManager implements Runnable {
 	private boolean noMorePackets = false;
 	private boolean lastAck = false;
 	private volatile boolean flag = true;
+	private Thread ackThread;
 	
     public FileSendManager(byte[] bytes, final InetAddress destAddress, final int destPort, final DatagramSocket socket, final String fileName) {
     	this.socket = socket;
@@ -35,18 +37,12 @@ public class FileSendManager implements Runnable {
 	public void run() {
 		System.out.println("File " + fileName + " is being uploaded.");
 		
-		Thread ackThread = new Thread(() -> checkAcks());
+		ackThread = new Thread(() -> checkAcks());
 		ackThread.start();
 		
 		while(flag && !noMorePackets) {
 			if (Thread.interrupted()) {
-				//was interrupted by the user: wait under user wants to resume
-				try {
-					while (true) {
-						Thread.sleep(60*60*1000);
-					}
-				} catch (InterruptedException e) {
-				}
+				handlePacketInterruption();
 			}
 			CanSend result = filePacketMaker.sendNextPacketIfPossible();
 			if (result == CanSend.NOT_IN_WINDOW) {
@@ -66,25 +62,45 @@ public class FileSendManager implements Runnable {
 			//TODO there should be a way to do this without a sleep
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
-			//was interrupted by the user: wait under user wants to resume
-			try {
-				while (true) {
-					Thread.sleep(60*60*1000);
-				}
-			} catch (InterruptedException e2) {
-			}
+			handlePacketInterruption();
 		}
 	}
 	
     public void checkAcks() {
     	
     	while (!lastAck) {
-    		if(Thread.interrupted()) {
-    			return;
-    		}
-    		lastAck = ackReceiver.receiveAndProcessAck();
+    		try {
+				lastAck = ackReceiver.receiveAndProcessAck();
+			} catch (SocketTimeoutException e) {
+				if(Thread.interrupted()) {
+	    			handleAckInterruption();
+	    		} else {
+					System.out.println("> Sending the file " + fileName + " failed because the socket connection broke down.");
+					return;
+	    		}
+			}
 	    } 
     	socket.close();
     	System.out.println("> File " + fileName + " was successfully uploaded!");
+    }
+    
+    public void handlePacketInterruption() {
+    	ackThread.interrupt();
+    	try {
+			while (true) {
+				Thread.sleep(60*60*1000);
+			}
+		} catch (InterruptedException e2) {
+			ackThread.interrupt();
+		}
+    }
+    
+    public void handleAckInterruption() {
+		try {
+			while (true) {
+				Thread.sleep(60*60*1000);
+			}
+		} catch (InterruptedException e2) {
+		}
     }
 }

@@ -6,9 +6,12 @@ import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Map;
 
 import com.nedap.university.eline.exchanger.executor.AckSender;
+import com.nedap.university.eline.exchanger.executor.FilePacketSender;
 import com.nedap.university.eline.exchanger.executor.ReceivedFilePacketTracker;
 import com.nedap.university.eline.exchanger.executor.Receiver;
 import com.nedap.university.eline.exchanger.packet.FilePacketContents;
@@ -50,10 +53,25 @@ public class FileReceiveManager implements Runnable {
 		System.out.println("Receiving the file " + fileName + ".");
 		
 		while(flag && !recAllPackets) {
+			try {
 				final DatagramPacket packet = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
 				processPacket(new FilePacketContents(packet));
+			} catch (SocketTimeoutException e) {
+				if (Thread.interrupted()) {
+					//if socket timed out because user paused the download, wait until time to resume
+					handleInterruption();
+				}
+				else {
+					System.out.println("> Receiving the file " + fileName + " failed because the socket connection broke down.");
+					return;
+				}
+			}
 		}
-		waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
+		
+		boolean done = false;
+		while(!done) {
+			done = waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
+		}
 		
 		saveFile();
 		socket.close();
@@ -63,11 +81,19 @@ public class FileReceiveManager implements Runnable {
 		flag = false;
 	}
 	
-	public void waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
-		final DatagramPacket possiblePacket = receiver.receivePacketWithTimeOut(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE);
+	public boolean waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
+		DatagramPacket possiblePacket;
+		try {
+			possiblePacket = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE, FilePacketSender.timeOutTime * 1000);
+		} catch (SocketTimeoutException e) {
+			return true;
+		}
+		
 		if(possiblePacket != null) {
 			sendDuplicateAck();
-			waitToVerifySenderHasReceivedAckAndIfNotSendAgain();
+			return false;
+		} else {
+			return true;
 		}
 	}
 	
@@ -122,7 +148,6 @@ public class FileReceiveManager implements Runnable {
 	}
 	
 	public void sendAck() {
-//		System.out.println("sending an ack with seqnum " + receivingWindow.getLargestConsecutivePacketReceived());
 		recAllPackets = recLastPacket && packetTracker.allPacketsUpToMostRecentlyArrivedPacketReceived();
 		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, receivingWindow.getLargestConsecutivePacketReceived());
 		ackSender.sendPacket(ack);
@@ -166,7 +191,15 @@ public class FileReceiveManager implements Runnable {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
-		
+	}
+	
+	public void handleInterruption() {
+		//was interrupted by the user: wait under user wants to resume
+		try {
+			while (true) {
+				Thread.sleep(60*60*1000);
+			}
+		} catch (InterruptedException e) {
+		}
 	}
 }

@@ -13,29 +13,21 @@ public class Receiver {
 		this.socket = socket;
 	}
 	
-	public DatagramPacket receivePacket(final int bufferLength) {
-		DatagramPacket response = null;
-    	try {
-			response = new DatagramPacket(new byte[bufferLength], bufferLength);
-			socket.receive(response);
-		} catch (IOException e) {
-			System.out.println("Receiving a message went wrong. Error message: " + e.getMessage());
-		}
-		return response;
-    }
+	public DatagramPacket receivePacket(final int bufferLength) throws SocketTimeoutException {
+		return receivePacket(bufferLength, 2 * FilePacketSender.timeOutTime * 1000);
+	}
 	
-	public DatagramPacket receivePacketWithTimeOut(final int bufferLength) {
+	public DatagramPacket receivePacket(final int bufferLength, final int timeout) throws SocketTimeoutException {
 		DatagramPacket response = null;
-    	try {
 			response = new DatagramPacket(new byte[bufferLength], bufferLength);
-			socket.setSoTimeout(FilePacketSender.timeOutTime * 1000);
-			socket.receive(response);
-		} catch (SocketTimeoutException e) {
-			return null;
-		} catch (IOException e) {
-			System.out.println("Receiving a message went wrong. Error message: " + e.getMessage());
-		}
+			try {
+				socket.setSoTimeout(FilePacketSender.timeOutTime * 1000);
+				socket.receive(response);
+			} catch (SocketTimeoutException e) {
+				throw new SocketTimeoutException();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
 		return response;
-    }
-
+	}
 }

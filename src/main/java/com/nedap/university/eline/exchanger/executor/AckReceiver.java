@@ -2,6 +2,7 @@ package com.nedap.university.eline.exchanger.executor;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketTimeoutException;
 
 import com.nedap.university.eline.exchanger.packet.AckPacketContents;
 import com.nedap.university.eline.exchanger.window.SendingWindow;
@@ -20,14 +21,14 @@ public class AckReceiver extends Receiver {
 		this.filePacketSender = filePacketSender;
 	}
 	
-	public boolean receiveAndProcessAck() {
+	public boolean receiveAndProcessAck() throws SocketTimeoutException {
 		AckPacketContents contents = receiveAck();
 		processAck(contents.getSeqNum());
 		
 		return contents.isAckOfLastPacket();
 	}
 	
-	public AckPacketContents receiveAck() {
+	public AckPacketContents receiveAck() throws SocketTimeoutException {
 		DatagramPacket packet = receivePacket(AckPacketContents.getAckPacketLength());
 		AckPacketContents contents = new AckPacketContents(packet);
 		return contents;
@@ -43,7 +44,7 @@ public class AckReceiver extends Receiver {
 	}
 	
 	public boolean isDuplicateAck(final int seqNumber) {
-//    	System.out.println("Ack with seqNumber " + seqNumber + " received. ");
+    	System.out.println("Ack with seqNumber " + seqNumber + " received. ");
 		if (seqNumber == (sendingWindow.getLastAckknowledgementReceived())) {
 			return true;
 		} else {
