@@ -177,9 +177,11 @@ public class FileReceiveManager implements Runnable {
         try {
         	final String absoluteFilePath = absoluteFilePathDir + File.separator + fileName;
         	file = new File(absoluteFilePath);
-			if(!file.createNewFile()){
-				overWritten = true;
-			}
+        	if (file.exists()) {
+        		file.delete();
+        		file = new File(absoluteFilePath);
+        		overWritten = true;
+        	}
 			RandomAccessFile randomAccessFile = new RandomAccessFile(absoluteFilePath, "rw");
 		
 			for(Map.Entry<Integer, byte[]> entry : packetTracker.getAllReceivedPackets().entrySet()) {

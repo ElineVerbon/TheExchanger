@@ -10,7 +10,6 @@ import java.util.Arrays;
 
 import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 import com.nedap.university.eline.exchanger.manager.FileSendManager;
-import com.nedap.university.eline.exchanger.packet.ChecksumGenerator;
 
 public class ServerHandlerListAskingClient {
 
