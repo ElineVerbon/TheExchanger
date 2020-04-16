@@ -1,14 +1,15 @@
 # TheExchanger
 
-First clone the project as follows:
+To get the program up and running, open a command line terminal.
+1. First make a clone of this repository by typing in the following lines in the terminal and hitting enter after each line:
 
-mkdir ElineFinalAssignment
+`mkdir ElineFinalAssignment`
 
-cd ElineFinalAssignment
+`cd ElineFinalAssignment`
 
-git clone https://github.com/ElineVerbon/TheExchanger.git
+`git clone https://github.com/ElineVerbon/TheExchanger.git`
 
-cd TheExchanger
+`cd TheExchanger`
 
 
 To connect to the pi:
