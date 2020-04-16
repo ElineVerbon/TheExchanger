@@ -111,28 +111,11 @@ public class ServerHandlerDownloadingClient {
 		}
 	}
 	
-	
-	public String getListOfPausedThreads() {
-		String pausedThreads = "";
-		for (String file : filesWithAnAnterruptedDownloadThread) {
-			pausedThreads = file + CommunicationStrings.SEPARATION_TWO_FILES;
-		}
-		return pausedThreads;
-	}
-	
 	public void resumeAThread(final DatagramPacket packet) {
 		try {
 			final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();
 	    	DatagramSocket thisCommunicationsSocket = new DatagramSocket();
-			
-	    	final String pausedFileNames = getListOfPausedThreads();
-	    	byte[] pausedFileNamesBytes = pausedFileNames.getBytes();
-	    	thisCommunicationsSocket.send(new DatagramPacket(pausedFileNamesBytes, pausedFileNamesBytes.length, clientAddress, clientPort));
-	    	
-	    	byte[] buffer = new byte[1500];
-    		final DatagramPacket response = new DatagramPacket(buffer, buffer.length);
-    		thisCommunicationsSocket.receive(response);
 	    	
 			byte[] fileNameBytes = Arrays.copyOfRange(packet.getData(), 1, packet.getLength());
 			String fileName = new String(fileNameBytes);
@@ -163,8 +146,8 @@ public class ServerHandlerDownloadingClient {
 	}
 	
 	 public void stopAllThreads() {
-	    	for (FileSendManager manager : managers) {
-	    		manager.stopRunning();
-	    	}
-	    }
+    	for (FileSendManager manager : managers) {
+    		manager.stopRunning();
+    	}
+    }
 }

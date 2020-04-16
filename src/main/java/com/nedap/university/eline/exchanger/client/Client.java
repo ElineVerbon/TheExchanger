@@ -14,20 +14,15 @@ public class Client {
 	private ClientDownloader downloader;
 	private ClientRemover remover;
 	private ClientReplacer replacer;
-	private ClientPauser pauser;
-	private ClientResumer resumer;
 	private ClientTerminator terminator;
 	
 	public Client(final ClientUploader uploader, final ClientListAsker listAsker, final ClientDownloader downloader, 
-			final ClientRemover remover, final ClientReplacer replacer, final ClientPauser pauser, 
-			final ClientResumer resumer, final ClientTerminator terminator) {
+			final ClientRemover remover, final ClientReplacer replacer, final ClientTerminator terminator) {
 	    this.uploader = uploader;
 	    this.listAsker = listAsker;
 	    this.downloader = downloader;
 	    this.remover = remover;
 	    this.replacer = replacer;
-	    this.pauser = pauser;
-	    this.resumer = resumer;
 	    this.terminator = terminator;
 	}
 	
@@ -46,14 +41,11 @@ public class Client {
 			ClientListAsker listAsker = new ClientListAsker(communicator);
 			ClientDownloader downloader = new ClientDownloader(communicator, listAsker);
 			ClientUploader uploader = new ClientUploader(communicator);
-			ClientPauser pauser = new ClientPauser(communicator);
 			ClientRemover remover = new ClientRemover(communicator, listAsker);
 			ClientReplacer replacer = new ClientReplacer(communicator, listAsker);
-			ClientResumer resumer = new ClientResumer(communicator);
 			ClientTerminator terminator = new ClientTerminator(communicator);
 			
-			Client client = new Client(uploader, listAsker, downloader, remover, replacer, 
-					pauser, resumer, terminator);
+			Client client = new Client(uploader, listAsker, downloader, remover, replacer, terminator);
 			
 	    	client.start();
 		} catch (UnknownHostException e) {
@@ -78,9 +70,9 @@ public class Client {
 				} else if(usersChoice.equals(CommunicationStrings.REPLACE)) {
 					replacer.letClientReplaceFile();
 				} else if(usersChoice.equals(CommunicationStrings.PAUSE)) {
-					pauser.letClientPauseDownload();
+					downloader.letClientPauseDownload();
 				} else if(usersChoice.equals(CommunicationStrings.CONTINUE)) {
-					resumer.letClientResumeDownload();
+					downloader.letClientResumeDownload();
 				} else if(usersChoice.equals(CommunicationStrings.HELP)) {
 					printHelpMenu();
 				}
