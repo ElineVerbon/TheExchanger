@@ -1,5 +1,16 @@
 # TheExchanger
 
+First clone the project as follows:
+
+mkdir ElineFinalAssignment
+
+cd ElineFinalAssignment
+
+git clone https://github.com/ElineVerbon/TheExchanger.git
+
+cd TheExchanger
+
+
 To connect to the pi:
 - Connect the pi to a charger and a network cable
 - Start a terminal, type 'ssh pi@nu-pi-stefan'. Fill in the password.
