@@ -26,27 +26,33 @@ public class ChoiceCommunicator {
 	
 	public DatagramPacket communicateChoiceToServerAndExpectLongerResponse(final byte[] choiceByte, final byte[] dataBytes, 
 			final DatagramSocket socket) throws SocketTimeoutException {
-    	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes, serverAddress, generalServerPort);
+    	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes);
     	sendToServer(packet, socket);
     	DatagramPacket response = receivePacket(socket, 2000);
     	return response;
     }
 	
 	public DatagramPacket communicateChoiceToServer(final byte[] choiceByte, final byte[] dataBytes, final DatagramSocket socket) throws SocketTimeoutException {
-    	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes, serverAddress, generalServerPort);
+    	DatagramPacket packet = makeDataPacket(choiceByte, dataBytes);
     	sendToServer(packet, socket);
     	DatagramPacket response = receivePacket(socket, 1);
     	return response;
     }
     
-    private DatagramPacket makeDataPacket(final byte[] choiceByte, final byte[] dataBytes, 
-    		final InetAddress serverAddress, final int serverPort) {
+    private DatagramPacket makeDataPacket(final byte[] choiceByte, final byte[] dataBytes) {
 		byte[] packetBytes = new byte[dataBytes.length + choiceByte.length];
 		System.arraycopy(choiceByte, 0, packetBytes, 0, choiceByte.length);
 		System.arraycopy(dataBytes, 0, packetBytes, choiceByte.length, dataBytes.length);
-		return new DatagramPacket(packetBytes, packetBytes.length, serverAddress, serverPort);
+		return new DatagramPacket(packetBytes, packetBytes.length, serverAddress, generalServerPort);
 	}
     
+       private void sendToServer(DatagramPacket packet, DatagramSocket socket) {
+    	try {
+			socket.send(packet);
+		} catch (IOException e) {
+			System.out.println("Could not send the choice to the server.");
+		}
+    }
     
     private DatagramPacket receivePacket(DatagramSocket socket, final int bufferSize) throws SocketTimeoutException {
 		DatagramPacket response = null;
@@ -64,13 +70,4 @@ public class ChoiceCommunicator {
 			
 		return response;
     }
-    
-    private void sendToServer(DatagramPacket packet, DatagramSocket socket) {
-    	try {
-			socket.send(packet);
-		} catch (IOException e) {
-			System.out.println("Could not send the choice to the server.");
-		}
-    }
-
 }

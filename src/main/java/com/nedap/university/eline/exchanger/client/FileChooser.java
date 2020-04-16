@@ -63,8 +63,8 @@ public class FileChooser {
     	return fileName;
     }
     
-    private void checkForExit(final String string) throws UserQuitToMainMenuException {
-    	if (string.equals("x")) {
+    private void checkForExit(final String userInput) throws UserQuitToMainMenuException {
+    	if (userInput.equals("x")) {
     		throw new UserQuitToMainMenuException();
     	}
     }

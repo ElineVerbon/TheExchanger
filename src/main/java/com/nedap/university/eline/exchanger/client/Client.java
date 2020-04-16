@@ -31,11 +31,11 @@ public class Client {
     	ClientTUI.showMessage("Client is starting up, please be patient.");
     	
 		try {
-			final InetAddress serverAddress = InetAddress.getLocalHost();
+//			final InetAddress serverAddress = InetAddress.getLocalHost();
 			final int generalServerPort = 8080;
-//			final String hostname = "nu-pi-stefan";
-//			final InetAddress serverAddress = InetAddress.getByName(hostname);
-//			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
+			final String hostname = "nu-pi-stefan";
+			final InetAddress serverAddress = InetAddress.getByName(hostname);
+			ClientTUI.showMessage("Connection established with \"" + hostname + "\"."); 
 			
 			ChoiceCommunicator communicator = new ChoiceCommunicator(generalServerPort, serverAddress);
 			ClientListAsker listAsker = new ClientListAsker(communicator);
@@ -74,7 +74,7 @@ public class Client {
 				} else if(usersChoice.equals(CommunicationStrings.CONTINUE)) {
 					downloader.letClientResumeDownload();
 				} else if(usersChoice.equals(CommunicationStrings.HELP)) {
-					printHelpMenu();
+					ClientTUI.printHelpMenu();
 				}
 			} catch (UserQuitToMainMenuException e) {
 			} catch (SocketTimeoutException e) {
@@ -84,14 +84,6 @@ public class Client {
 		}
 		terminator.endProgram();
     }
-	
-	public void printHelpMenu() {
-		ClientTUI.showMessage("Type one of the following single characters, followed by hitting enter to execute the corresponding action.\n"
-				+ " l: request a list of all files present on the Server. This list will be downloaded and the content printed here\n"
-				+ " u: upload a file to the server\n d: download a file from the server\n w: withdraw (remove) a file from the server\n"
-				+ " r: replace a file on the server with a local file\n p: pause the download of a file\n c: continue the paused download of a file\n"
-				+ " e: exit the program");
-	}
 }
 
 

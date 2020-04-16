@@ -41,7 +41,7 @@ public class ClientReplacer {
 			final byte[] fileBytes = Files.readAllBytes(toBeUploadedFile.toPath());
 			
 			FileSendManager manager = new FileSendManager(fileBytes, communicator.getServerAddress(), specificServerPort, thisCommunicationsSocket, fileNamesForInResultString);
-			startAndSaveNewThreadToSendFile(manager);
+			startNewThreadToSendFile(manager);
 		} catch (SocketException e) {
 			ClientTUI.showMessage("Opening a socket to download a file failed.");
 		} catch (IOException e) {
@@ -50,7 +50,7 @@ public class ClientReplacer {
 		}
 	}
 	
-	private void startAndSaveNewThreadToSendFile(final FileSendManager manager) {
+	private void startNewThreadToSendFile(final FileSendManager manager) {
 		Thread thread = new Thread(manager);
 		thread.start();
 	}

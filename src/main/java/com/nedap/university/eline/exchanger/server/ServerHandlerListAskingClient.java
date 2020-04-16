@@ -34,7 +34,7 @@ public class ServerHandlerListAskingClient {
 		}
 	}
 	
-	public byte[] getListOfFiles() {
+	private byte[] getListOfFiles() {
 		String allFiles = "";
 		File directory = new File(Server.ACCESSIBLE_FOLDER);
 		for (File file : directory.listFiles()) {

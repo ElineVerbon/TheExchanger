@@ -4,8 +4,6 @@ import java.net.DatagramPacket;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.nedap.university.eline.exchanger.manager.FileSendManager.sendReason;
-
 public class SentFilePacketTracker {
 	
 	private Map<Integer, DatagramPacket> sentNotAckedPackets;

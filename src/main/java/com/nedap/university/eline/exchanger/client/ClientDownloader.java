@@ -48,7 +48,7 @@ public class ClientDownloader {
 		}
 	}
 	
-	public void downloadFile() throws UserQuitToMainMenuException, SocketTimeoutException  {
+	private void downloadFile() throws UserQuitToMainMenuException, SocketTimeoutException  {
 		
 		try {
 			byte[] choiceIndicator = CommunicationStrings.toBytes(CommunicationStrings.DOWNLOAD);
@@ -101,15 +101,7 @@ public class ClientDownloader {
 			String fileName = ClientTUI.getString();
 			byte[] fileNameBytes = fileName.getBytes();
 			
-			if (startedThreads.containsKey(fileName)) {
-				if ((startedThreads.get(fileName).getState() == Thread.State.RUNNABLE 
-					|| startedThreads.get(fileName).getState() == Thread.State.TIMED_WAITING)) {
-					if (!(filesWithAnAnterruptedDownloadThread.contains(fileName))) {
-						startedThreads.get(fileName).interrupt();
-						filesWithAnAnterruptedDownloadThread.add(fileName);
-					}
-				}
-			}
+			pauseOwnThreads(fileName);
 			
 			DatagramPacket response = communicator.communicateChoiceToServer(choiceIndicator, fileNameBytes,thisCommunicationsSocket);
 	    	byte[] responseBytes = response.getData();
@@ -120,7 +112,19 @@ public class ClientDownloader {
 		}
 	}
 	
-	public void updatePausingUser(final byte[] responseBytes) {
+	private void pauseOwnThreads(final String fileName) {
+		if (startedThreads.containsKey(fileName)) {
+			if ((startedThreads.get(fileName).getState() == Thread.State.RUNNABLE 
+				|| startedThreads.get(fileName).getState() == Thread.State.TIMED_WAITING)) {
+				if (!(filesWithAnAnterruptedDownloadThread.contains(fileName))) {
+					startedThreads.get(fileName).interrupt();
+					filesWithAnAnterruptedDownloadThread.add(fileName);
+				}
+			}
+		}
+	}
+	
+	private void updatePausingUser(final byte[] responseBytes) {
 		String serversResponse = new String(responseBytes);
     	if (serversResponse.equals(CommunicationStrings.NO_SUCH_THREAD)) { 
 			ClientTUI.showMessage("No thread known for this filename.");
@@ -150,17 +154,17 @@ public class ClientDownloader {
 
 			DatagramPacket response = communicator.communicateChoiceToServer(choiceIndicator, fileNameBytes,thisCommunicationsSocket);
 			
-			resumePausedThread(fileName);
+			resumeOwnPausedThread(fileName);
 	    	
 			byte[] responseBytes = response.getData();
-	    	updateUser(responseBytes);
+	    	updateResumingUser(responseBytes);
 	    	
 		} catch (SocketException e) {
 			ClientTUI.showMessage("Opening a socket to remove a file failed.");
 		}
 	}
 	
-	public boolean showPausedFilesIfAny() {
+	private boolean showPausedFilesIfAny() {
 		if (filesWithAnAnterruptedDownloadThread.size() == 0) {
 			ClientTUI.showMessage("\nThese are no files of which the download is currently paused. Returning to main menu.");
 			return false;
@@ -172,7 +176,7 @@ public class ClientDownloader {
 		return true;
 	}
 	
-	public void updateUser(final byte[] responseBytes) {
+	private void updateResumingUser(final byte[] responseBytes) {
 		String serversResponse = new String(responseBytes);
     	if (serversResponse.equals(CommunicationStrings.NO_SUCH_THREAD)) { 
 			ClientTUI.showMessage("No thread known for this filename.");
@@ -185,7 +189,7 @@ public class ClientDownloader {
 		}
 	}
 	
-	public void resumePausedThread(final String fileName) {
+	private void resumeOwnPausedThread(final String fileName) {
 		if (startedThreads.containsKey(fileName)) {
 			if ((startedThreads.get(fileName).getState() == Thread.State.RUNNABLE 
 				|| startedThreads.get(fileName).getState() == Thread.State.TIMED_WAITING)) {
@@ -196,6 +200,4 @@ public class ClientDownloader {
 			}
 		}
 	}
-	
-
 }

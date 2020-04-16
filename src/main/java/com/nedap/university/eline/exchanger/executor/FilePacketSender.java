@@ -27,7 +27,7 @@ public class FilePacketSender extends AbstractSender{
 //		updateUser(reason, seqNum);
     }
 	
-	public void setPacketTimer(final int seqNumber) {
+	private void setPacketTimer(final int seqNumber) {
     	ScheduledExecutorService scheduler
                                 = Executors.newSingleThreadScheduledExecutor();
      
@@ -51,7 +51,7 @@ public class FilePacketSender extends AbstractSender{
     	}
     }
     
-    public void updateUser(final sendReason reason, final int seqNumber ) {
+    private void updateUser(final sendReason reason, final int seqNumber ) {
     	if (reason == sendReason.PRIMARY) {
 			System.out.println("Sent packet with seqNumber " + seqNumber + " for the first time.");
 		} else if (reason == sendReason.DACK) {

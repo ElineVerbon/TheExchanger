@@ -2,7 +2,6 @@ package com.nedap.university.eline.exchanger.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -54,29 +53,14 @@ public class ServerHandlerDownloadingClient {
 		}
 	}
 	
-	public void startAndSaveNewThreadToSendFile(final String fileName, final FileSendManager manager) {
+	private void startAndSaveNewThreadToSendFile(final String fileName, final FileSendManager manager) {
 		Thread thread = new Thread(manager);
 		thread.start();
 		startedThreads.put(fileName, thread);
 		managers.add(manager);
 	}
 	
-	public byte[] getListOfFiles() {
-		byte[] fileList = null;
-		try {
-			String allFiles = "";
-			File directory = new File(Server.ACCESSIBLE_FOLDER);
-			for (File file : directory.listFiles()) {
-				allFiles = allFiles + file.getName() + CommunicationStrings.SEPARATION_NAME_SIZE + file.length() + CommunicationStrings.SEPARATION_TWO_FILES;
-			}
-			fileList = allFiles.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			System.out.println("The encoding is not supported!");
-		}
-		return fileList;
-	}
-	
-	public void pauseAThread(final DatagramPacket packet) {
+	public void pauseADownload(final DatagramPacket packet) {
 		try {
 			final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();
@@ -111,7 +95,7 @@ public class ServerHandlerDownloadingClient {
 		}
 	}
 	
-	public void resumeAThread(final DatagramPacket packet) {
+	public void resumeADownload(final DatagramPacket packet) {
 		try {
 			final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();

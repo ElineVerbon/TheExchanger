@@ -12,7 +12,7 @@ public abstract class AbstractWindow {
 			throw new IllegalArgumentException();
 		}
 		
-		int windowSize = setWindowSize(windowType);
+		int windowSize = getWindowSize(windowType);
 		if (oneBeforeStartWindow == -1) {
 			return isInWindowWhenNoPacketReceivedYet(aNumber, windowSize);
 		}
@@ -33,7 +33,7 @@ public abstract class AbstractWindow {
 		return (aNumber >= 0 && aNumber < windowSize);
 	}
 	
-	public static int setWindowSize(final String windowType) {
+	public static int getWindowSize(final String windowType) {
 		if (windowType == "SWS") {
 			return SENDING_WINDOW_SIZE;
 		} else {

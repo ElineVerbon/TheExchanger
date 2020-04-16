@@ -22,21 +22,21 @@ public class Server {
     
     boolean done = false;
     
-//    public static final String ACCESSIBLE_FOLDER = "/home/pi/accessibleFolder/";
-    public static final String ACCESSIBLE_FOLDER = System.getProperty ("user.home") + "/Desktop/";
+    public static final String ACCESSIBLE_FOLDER = "/home/pi/accessibleFolder/";
+//    public static final String ACCESSIBLE_FOLDER = System.getProperty ("user.home") + "/Desktop/";
  
     public Server(int port) {
         try {
 			generalSocket = new DatagramSocket(port);
+			serverHandlerUploadingClient = new ServerHandlerUploadingClient();
+	        serverHandlerListAskingClient = new ServerHandlerListAskingClient();
+	        serverHandlerDownloadingClient = new ServerHandlerDownloadingClient();
+	        serverHandlerRemovingClient = new ServerHandlerRemovingClient();
+	        serverHandlerReplacingClient = new ServerHandlerReplacingClient();
 		} catch (SocketException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        serverHandlerUploadingClient = new ServerHandlerUploadingClient();
-        serverHandlerListAskingClient = new ServerHandlerListAskingClient();
-        serverHandlerDownloadingClient = new ServerHandlerDownloadingClient();
-        serverHandlerRemovingClient = new ServerHandlerRemovingClient();
-        serverHandlerReplacingClient = new ServerHandlerReplacingClient();
+        
     }
  
     public static void main(String[] args) {
@@ -46,7 +46,7 @@ public class Server {
     	server.start();
     }
     
-    public void start() {
+    private void start() {
     	while(!done) {
     		DatagramPacket choicePacket = getChoice();
     		processChoice(choicePacket);
@@ -54,7 +54,7 @@ public class Server {
     	
     }
     
-    public DatagramPacket getChoice() {
+    private DatagramPacket getChoice() {
     	DatagramPacket choicePacket = null;
     	try {
     		byte[] buffer = new byte[1500];
@@ -66,7 +66,7 @@ public class Server {
 		return choicePacket;
     }
     
-    public void processChoice(final DatagramPacket choicePacket) {
+    private void processChoice(final DatagramPacket choicePacket) {
     	byte[] choiceBytes = choicePacket.getData();
     	byte[] choiceByte = Arrays.copyOfRange(choiceBytes, 0, 1);
     	final String choice = new String(choiceByte);
@@ -82,9 +82,9 @@ public class Server {
     	} else if (choice.equals(CommunicationStrings.REPLACE)) {
     		serverHandlerReplacingClient.letUserReplaceFile(choicePacket);
     	} else if (choice.equals(CommunicationStrings.PAUSE)) {
-    		serverHandlerDownloadingClient.pauseAThread(choicePacket);
+    		serverHandlerDownloadingClient.pauseADownload(choicePacket);
     	} else if (choice.equals(CommunicationStrings.CONTINUE)) {
-    		serverHandlerDownloadingClient.resumeAThread(choicePacket);
+    		serverHandlerDownloadingClient.resumeADownload(choicePacket);
     	} else if (choice.equals(CommunicationStrings.EXIT)) {
     		sendResponseWithOnlyChoiceByte(choicePacket);
     		serverHandlerDownloadingClient.stopAllThreads();
@@ -93,7 +93,7 @@ public class Server {
     	}
     }
     
-    public void sendResponseWithOnlyChoiceByte(final DatagramPacket packet) {
+    private void sendResponseWithOnlyChoiceByte(final DatagramPacket packet) {
     	try {
     		final InetAddress clientAddress = packet.getAddress();
 	    	final int clientPort = packet.getPort();

@@ -42,7 +42,7 @@ public class FileSendManager implements Runnable {
 		
 		while(flag && !noMorePackets) {
 			if (Thread.interrupted()) {
-				handlePacketInterruption();
+				handlePacketThreadInterruption();
 			}
 			CanSend result = filePacketMaker.sendNextPacketIfPossible();
 			if (result == CanSend.NOT_IN_WINDOW) {
@@ -57,12 +57,12 @@ public class FileSendManager implements Runnable {
 		flag = false;
 	}
 	
-	public void waitABit() {
+	private void waitABit() {
 		try {
 			//TODO there should be a way to do this without a sleep
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
-			handlePacketInterruption();
+			handlePacketThreadInterruption();
 		}
 	}
 	
@@ -73,7 +73,7 @@ public class FileSendManager implements Runnable {
 				lastAck = ackReceiver.receiveAndProcessAck();
 			} catch (SocketTimeoutException e) {
 				if(Thread.interrupted()) {
-	    			handleAckInterruption();
+	    			handleAckThreadInterruption();
 	    		} else {
 					System.out.println("> Sending the file " + fileName + " failed because the socket connection broke down.");
 					return;
@@ -84,7 +84,7 @@ public class FileSendManager implements Runnable {
     	System.out.println("> File " + fileName + " was successfully uploaded!");
     }
     
-    public void handlePacketInterruption() {
+    private void handlePacketThreadInterruption() {
     	ackThread.interrupt();
     	try {
 			while (true) {
@@ -95,7 +95,7 @@ public class FileSendManager implements Runnable {
 		}
     }
     
-    public void handleAckInterruption() {
+    private void handleAckThreadInterruption() {
 		try {
 			while (true) {
 				Thread.sleep(60*60*1000);

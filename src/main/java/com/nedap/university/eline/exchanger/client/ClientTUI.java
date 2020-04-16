@@ -3,11 +3,6 @@ package com.nedap.university.eline.exchanger.client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import com.nedap.university.eline.exchanger.communication.CommunicationStrings;
 
@@ -31,6 +26,15 @@ public class ClientTUI {
 	 */
 	public static void showMessage(String message) {
 		System.out.println(message);
+	}
+	
+	
+	public static void printHelpMenu() {
+		showMessage("Type one of the following single characters, followed by hitting enter to execute the corresponding action.\n"
+				+ " l: request a list of all files present on the Server. This list will be downloaded and the content printed here\n"
+				+ " u: upload a file to the server\n d: download a file from the server\n w: withdraw (remove) a file from the server\n"
+				+ " r: replace a file on the server with a local file\n p: pause the download of a file\n c: continue the paused download of a file\n"
+				+ " e: exit the program");
 	}
 	
 	/**

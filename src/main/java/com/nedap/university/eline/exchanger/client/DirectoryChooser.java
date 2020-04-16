@@ -59,7 +59,7 @@ public class DirectoryChooser {
 		return true;
 	}
     
-    public String getDirectory(final String message) throws UserQuitToMainMenuException {
+    private String getDirectory(final String message) throws UserQuitToMainMenuException {
     	
     	if (dirSaved) {
 			if (ClientTUI.getBoolean("Do you want to save the file to the previous path (" + savedPath + ")? (y / n)")) {
@@ -71,23 +71,23 @@ public class DirectoryChooser {
     	ClientTUI.showMessage(message);
     	String absoluteFilePathDir = ClientTUI.getString();
     	checkForExit(absoluteFilePathDir);
-    	File file = new File(absoluteFilePathDir);
+    	File directory = new File(absoluteFilePathDir);
 
-    	while (!file.isDirectory()) {
+    	while (!directory.isDirectory()) {
     		ClientTUI.showMessage("");
     		ClientTUI.showMessage("The String you typed is not a directory on this computer. "
     				+ "Please try again. (Type x to return to the main menu.)");
     		absoluteFilePathDir = ClientTUI.getString();
     		checkForExit(absoluteFilePathDir);
-        	file = new File(absoluteFilePathDir);
+        	directory = new File(absoluteFilePathDir);
     	}
     	savedPath = absoluteFilePathDir;
     	
     	return absoluteFilePathDir;
     }
     
-    public void checkForExit(final String string) throws UserQuitToMainMenuException {
-    	if (string.equals("x")) {
+    private void checkForExit(final String userInput) throws UserQuitToMainMenuException {
+    	if (userInput.equals("x")) {
     		throw new UserQuitToMainMenuException();
     	}
     }

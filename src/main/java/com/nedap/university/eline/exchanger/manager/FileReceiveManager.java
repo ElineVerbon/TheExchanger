@@ -6,7 +6,6 @@ import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Map;
 
@@ -81,7 +80,7 @@ public class FileReceiveManager implements Runnable {
 		flag = false;
 	}
 	
-	public boolean waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
+	private boolean waitToVerifySenderHasReceivedAckAndIfNotSendAgain() {
 		DatagramPacket possiblePacket;
 		try {
 			possiblePacket = receiver.receivePacket(FilePacketContents.HEADERSIZE + FilePacketContents.DATASIZE, FilePacketSender.timeOutTime * 1000);
@@ -97,7 +96,7 @@ public class FileReceiveManager implements Runnable {
 		}
 	}
 	
-	public void processPacket(final FilePacketContents packet) {
+	private void processPacket(final FilePacketContents packet) {
 		
 		if(!receivingWindow.isInWindow(packet.getSeqNum())) {
 			sendDuplicateAck();
@@ -122,7 +121,7 @@ public class FileReceiveManager implements Runnable {
 		}
 	}
 	
-	public int getPacketNumber(final int seqNumber) {
+	private int getPacketNumber(final int seqNumber) {
 		int packetNumber;
 		if (lastAckedSeqNumPacNumPair[0] == -1) {
 			packetNumber = seqNumber;
@@ -141,19 +140,19 @@ public class FileReceiveManager implements Runnable {
 		}
 	}
 	
-	public void sendDuplicateAck() {
+	private void sendDuplicateAck() {
 		duplicateAck = true;
 		sendAck();
 		duplicateAck = false;
 	}
 	
-	public void sendAck() {
+	private void sendAck() {
 		recAllPackets = recLastPacket && packetTracker.allPacketsUpToMostRecentlyArrivedPacketReceived();
 		final DatagramPacket ack = ackMaker.makePacket(recAllPackets, duplicateAck, receivingWindow.getLargestConsecutivePacketReceived());
 		ackSender.sendPacket(ack);
 	}
 	
-	public void setLFRToHighestConsAck(final int packetNumber) {
+	private void setLFRToHighestConsAck(final int packetNumber) {
 		if(packetNumber == 0) {
 			receivingWindow.setLargestConsecutivePacketReceived(0);
 		} else {
@@ -162,7 +161,7 @@ public class FileReceiveManager implements Runnable {
 		}
 	}
 	
-	public void saveFile() {
+	private void saveFile() {
 		
 		File file;
 		boolean overWritten = false;
@@ -193,7 +192,7 @@ public class FileReceiveManager implements Runnable {
 		}
 	}
 	
-	public void handleInterruption() {
+	private void handleInterruption() {
 		//was interrupted by the user: wait under user wants to resume
 		try {
 			while (true) {

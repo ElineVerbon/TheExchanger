@@ -44,7 +44,7 @@ public class AckReceiver extends Receiver {
 	}
 	
 	public boolean isDuplicateAck(final int seqNumber) {
-    	System.out.println("Ack with seqNumber " + seqNumber + " received. ");
+//    	System.out.println("Ack with seqNumber " + seqNumber + " received. ");
 		if (seqNumber == (sendingWindow.getLastAckknowledgementReceived())) {
 			return true;
 		} else {
